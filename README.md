@@ -53,7 +53,7 @@ food-ordering-system/
 1. Clone repository:
    ```bash
    git clone https://github.com/ghtipi/Website_Dat-Mon-An-Noi-Bo.git
-   cd food-ordering-system/backend
+   cd Website_Dat-Mon-An-Noi-Bo/backend
    ```
 2. Cài đặt dependencies:
    ```bash
