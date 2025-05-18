@@ -7,11 +7,11 @@ Website đặt thức ăn nội bộ cho căn tin/KTX, hỗ trợ sinh viên/nh�
 - **Tên dự án**: Website Đặt Thức Ăn Nội Bộ
 - **Thời gian**: 28/04/2025 – 09/06/2025
 - **Nhóm phát triển**:
-  - **Trần Thành Phát**: Backend Developer (Laravel, MongoDB)
+  - **Trần Thành Phát (leader)**: Backend Developer (Laravel, MongoDB)
   - **Đặng Vương Đại**: Frontend Developer (React, TypeScript)
   - **Nguyễn Phúc Vũ Khánh**: Tester (API, UI)
   - **Huỳnh Minh Thuận**: UI/UX Designer (Figma, responsive)
-- **Repository**: [food-ordering-system](https://github.com/<username>/food-ordering-system) (Private)
+- **Repository**: [Website_Dat-Mon-An-Noi-Bo](https://github.com/ghtipi/Website_Dat-Mon-An-Noi-Bo) (Public)
 
 ## Công nghệ sử dụng
 
@@ -52,7 +52,7 @@ food-ordering-system/
 ### Backend
 1. Clone repository:
    ```bash
-   git clone https://github.com/<username>/food-ordering-system.git
+   git clone https://github.com/ghtipi/Website_Dat-Mon-An-Noi-Bo.git
    cd food-ordering-system/backend
    ```
 2. Cài đặt dependencies:
@@ -133,7 +133,7 @@ food-ordering-system/
 ## Quản lý dự án trên GitHub
 
 ### 1. Tạo repository
-- **Tên**: `food-ordering-system` (Private).
+- **Tên**: `Website_Dat-Mon-An-Noi-Bo` (Private).
 - **Khởi tạo**:
   - Thêm `.gitignore` (kết hợp PHP và Node).
   - Thêm `README.md`.
