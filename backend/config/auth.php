@@ -1,6 +1,7 @@
 <?php
 
 return [
+    
 
     /*
     |--------------------------------------------------------------------------
@@ -36,19 +37,7 @@ return [
     */
 
 
-    'guards' => [
-    'api' => [
-        'driver' => 'jwt',
-        'provider' => 'users',
-    ],
-        ],
-
-        'providers' => [
-            'users' => [
-                'driver' => 'eloquent',
-                'model' => App\Models\User::class,
-            ],
-        ],
+    
 
 
     'guards' => [
@@ -56,6 +45,10 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+         'api' => [
+        'driver' => 'jwt',
+        'provider' => 'users',
+    ],
     ],
 
     /*
