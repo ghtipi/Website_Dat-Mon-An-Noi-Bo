@@ -26,8 +26,17 @@ class User extends Model implements AuthenticatableContract, JWTSubject
         'default_address',
     ];
 
-    protected $hidden = ['password'];
+    protected $hidden = ['password', 'remember_token'];
 
+    public function hasRole($role)
+    {
+        return $this->role === $role;
+    }
+
+    public function isAdmin()
+    {
+        return $this->hasRole('admin');
+    }
 
     public function getJWTIdentifier()
     {
