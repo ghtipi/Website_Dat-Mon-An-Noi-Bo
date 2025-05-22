@@ -35,6 +35,22 @@ return [
     |
     */
 
+
+    'guards' => [
+    'api' => [
+        'driver' => 'jwt',
+        'provider' => 'users',
+    ],
+        ],
+
+        'providers' => [
+            'users' => [
+                'driver' => 'eloquent',
+                'model' => App\Models\User::class,
+            ],
+        ],
+
+
     'guards' => [
         'web' => [
             'driver' => 'session',
