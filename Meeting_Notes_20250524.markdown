@@ -5,10 +5,11 @@
 - **Địa điểm**: 709a Đ. Phan Văn Trị, Phường 1, Gò Vấp, Hồ Chí Minh
 - **Người tham dự**:  
   - Khách hàng:  Trần Thị B
-  - Đội dự án: + [Trần Thành Phát] (PM)
-               + Nhóm UI/UX [ Huỳnh Minh Thuận - Nguyễn Phúc Vũ Khánh ]
-               + Nhóm Frontend [ Đặng Vương Đại ]
-               + Nhóm Backend  [ Trần Thành Phát]
+  - Đội dự án:  
+    + [Trần Thành Phát] (PM)  
+    + Nhóm UI/UX [Huỳnh Minh Thuận - Nguyễn Phúc Vũ Khánh]  
+    + Nhóm Frontend [Đặng Vương Đại]  
+    + Nhóm Backend [Trần Thành Phát]  
 - **Mục tiêu**: Thu thập yêu cầu cho website đặt món ăn nội bộ (Frontend: React/Vite, Backend: Laravel/MongoDB)
 
 ## Yêu cầu thu thập được
@@ -35,4 +36,4 @@
 5. **PM ([Tên bạn])**: Gửi email xác nhận yêu cầu cho khách hàng trước 25/05/2025.
 
 ## Kết luận
-Cuộc họp đã thu thập được các yêu cầu quan trọng, giúp định hướng phát triển cho website đặt món ăn nội bộ. Các nhóm cần bắt đầu thực hiện ngay để đảm bảo tiến độ dự án.
+Đã thu thập được các yêu cầu quan trọng, giúp định hướng phát triển cho website đặt món ăn nội bộ. Các nhóm cần bắt đầu thực hiện ngay để đảm bảo tiến độ dự án.
