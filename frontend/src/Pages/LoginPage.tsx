@@ -1,46 +1,82 @@
-import {  useState } from 'react';
-import type { FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import useTypingEffect from '../hooks/useTypingEffect';
 import apiCall from '../Api/axios';
 
-interface LoginForm {
-  email: string;
-  password: string;
-}
-
-function LoginPage() {
-  const [form, setForm] = useState<LoginForm>({ email: '', password: '' });
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+const LoginPage = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
 
+  // Lấy đường dẫn trước đó từ state
+  const from = (location.state as any)?.from?.pathname || '/';
 
-const emailPlaceholder = useTypingEffect({ text: 'Nhập email của bạn ...', active: form.email === '' });
-const passwordPlaceholder = useTypingEffect({ text: 'Nhập mật khẩu ... ', active: form.password === '' });
+  // Kiểm tra trạng thái đăng nhập
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      if (user.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate(from);
+      }
+    }
+  }, [navigate, from]);
 
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
+    setError('');
+
     try {
-      const data = await apiCall('post', '/auth/login', form);
-      localStorage.setItem('token', data.token);
-      setSuccess('Đăng nhập thành công!');
-      setTimeout(() => navigate('/'), 1000);
+      console.log('Sending login request with:', { email, password });
+      const data = await apiCall('post', '/auth/login', { email, password });
+      console.log('Login response:', data);
+      
+      // Kiểm tra response có chứa thông tin user không
+      if (!data.user) {
+        throw new Error('Không nhận được thông tin người dùng');
+      }
+
+      const userData = {
+        id: data.user.id,
+        email: data.user.email,
+        name: data.user.name,
+        role: data.user.role || 'user', // Mặc định là user nếu không có role
+      };
+      
+      console.log('User data:', userData); // Log để kiểm tra role
+      
+      // Lưu thông tin user
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      // Lưu token nếu có
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
+
+      // Chuyển hướng dựa trên role
+      const role = userData.role.toLowerCase();
+      if (role === 'admin') {
+        console.log('Redirecting to admin dashboard...');
+        navigate('/admin/dashboard');
+      } else if (role === 'manager') {
+        console.log('Redirecting to manager dashboard...');
+        navigate('/manager/dashboard');
+      } else {
+        console.log('Redirecting to user page...');
+        navigate(from);
+      }
     } catch (err: any) {
-      setError(err.error || 'Đăng nhập thất bại');
+      console.error('Login error:', err);
+      setError(err.error || 'Email hoặc mật khẩu không đúng');
     }
   };
 
-  const handleBack = () => {
-    navigate('/');
-  };
+  const emailPlaceholder = useTypingEffect({ text: 'Nhập email của bạn ...', active: email === '' });
+  const passwordPlaceholder = useTypingEffect({ text: 'Nhập mật khẩu ... ', active: password === '' });
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-cover bg-center" style={{ backgroundImage: "url('/src/assets/images/background.png')" }}>
@@ -48,7 +84,7 @@ const passwordPlaceholder = useTypingEffect({ text: 'Nhập mật khẩu ... ', 
         {/* Left Section - Form */}
         <div className="w-full lg:w-1/2 p-8 sm:p-10 flex flex-col justify-center bg-black/20 backdrop-blur-sm">
           <button
-            onClick={handleBack}
+            onClick={() => navigate('/')}
             className="flex items-center text-white bg-teal-600 hover:bg-teal-700 font-semibold rounded-lg px-4 py-2 shadow-lg transition duration-300 transform hover:scale-105 mb-4 max-w-[120px]"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -57,8 +93,6 @@ const passwordPlaceholder = useTypingEffect({ text: 'Nhập mật khẩu ... ', 
             Quay lại
           </button>
 
-
-
           <h2 className="text-3xl font-bold text-white text-center mb-6">Welcome Back!</h2>
 
           {error && (
@@ -66,21 +100,16 @@ const passwordPlaceholder = useTypingEffect({ text: 'Nhập mật khẩu ... ', 
               {error}
             </div>
           )}
-          {success && (
-            <div className="bg-green-100/80 text-green-700 p-4 rounded-lg mb-6 animate-fade-in">
-              {success}
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-b mb-2">Tên đăng nhập</label>
+              <label htmlFor="email" className="block text-sm font-medium text-b mb-2">Email</label>
               <input
                 type="email"
                 name="email"
                 id="email"
-                value={form.email}
-                onChange={handleChange}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder={emailPlaceholder}
                 className="w-full p-3 bg-white/80 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-200 shadow-xl"
                 required
@@ -92,8 +121,8 @@ const passwordPlaceholder = useTypingEffect({ text: 'Nhập mật khẩu ... ', 
                 type="password"
                 name="password"
                 id="password"
-                value={form.password}
-                onChange={handleChange}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder={passwordPlaceholder}
                 className="w-full p-3 bg-white/80 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-200 shadow-xl"
                 required
@@ -115,7 +144,7 @@ const passwordPlaceholder = useTypingEffect({ text: 'Nhập mật khẩu ... ', 
             </div>
             <button
               type="submit"
-              className="w-full p-3  rounded-lg  text-white  bg-gradient-to-r from-teal-600 to-teal-500  hover:from-teal-500 hover:to-teal-600  hover:shadow-lg  focus:outline-none  focus:ring-4 focus:ring-teal-400 focus:ring-opacity-50  transition  duration-500  ease-in-out  transform  hover:scale-105  active:scale-95 shadow-xl "
+              className="w-full p-3 rounded-lg text-white bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-500 hover:to-teal-600 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-teal-400 focus:ring-opacity-50 transition duration-500 ease-in-out transform hover:scale-105 active:scale-95 shadow-xl"
             >
               Đăng nhập
             </button>
@@ -137,6 +166,6 @@ const passwordPlaceholder = useTypingEffect({ text: 'Nhập mật khẩu ... ', 
       </div>
     </div>
   );
-}
+};
 
 export default LoginPage;
