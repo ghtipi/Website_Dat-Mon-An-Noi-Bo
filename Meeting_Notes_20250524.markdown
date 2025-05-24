@@ -7,7 +7,7 @@
   - Khách hàng:  Trần Thị B
   - Đội dự án:  
     + [Trần Thành Phát] (PM)  
-    + Nhóm UI/UX [Huỳnh Minh Thuận - Nguyễn Phúc Vũ Khánh]  
+    + Nhóm UI/UX- Tester [Huỳnh Minh Thuận - Nguyễn Phúc Vũ Khánh]  
     + Nhóm Frontend [Đặng Vương Đại]  
     + Nhóm Backend [Trần Thành Phát]  
 - **Mục tiêu**: Thu thập yêu cầu cho website đặt món ăn nội bộ (Frontend: React/Vite, Backend: Laravel/MongoDB)
