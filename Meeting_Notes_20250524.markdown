@@ -1,11 +1,14 @@
 # Ghi chú cuộc họp khách hàng - Thu thập yêu cầu
 
 ## Thông tin cuộc họp
-- **Thời gian**: 02:53, Thứ Bảy, 24/05/2025  
+- **Thời gian**: 05:16 PM, Thứ Bảy, 24/05/2025  
 - **Địa điểm**: 709a Đ. Phan Văn Trị, Phường 1, Gò Vấp, Hồ Chí Minh
 - **Người tham dự**:  
   - Khách hàng:  Trần Thị B
-  - Đội dự án: [Trần Thành Phát] (PM), Nhóm UI/UX, Nhóm Frontend, Nhóm Backend  
+  - Đội dự án: [Trần Thành Phát] (PM),
+               Nhóm UI/UX [ Huỳnh Minh Thuận - Nguyễn Phúc Vũ Khánh ]
+               Nhóm Frontend [ Đặng Vương Đại ]
+               Nhóm Backend  [ Trần Thành Phát]
 - **Mục tiêu**: Thu thập yêu cầu cho website đặt món ăn nội bộ (Frontend: React/Vite, Backend: Laravel/MongoDB)
 
 ## Yêu cầu thu thập được
