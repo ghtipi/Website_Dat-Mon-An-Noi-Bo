@@ -4,7 +4,7 @@ import apiCall from '../Api/axios';
 interface User {
   id: string;
   email: string;
-  role: 'admin' | 'user';
+  role?: 'admin' | 'user'| 'manager';
 }
 
 interface AuthContextType {
@@ -29,9 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      console.log('Attempting login with:', { email, password });
       const data = await apiCall('post', '/login', { email, password });
-      console.log('Login response:', data);
       
       const userData = {
         id: data.id,

@@ -1,13 +1,37 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { IoHomeOutline, IoSettingsOutline, IoMailOutline, IoInformationCircleOutline } from "react-icons/io5";
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { 
+  IoHomeOutline, 
+  IoSettingsOutline, 
+  IoMailOutline, 
+  IoInformationCircleOutline, 
+  IoLogOutOutline 
+} from "react-icons/io5";
+import { useAuth } from '../contexts/AuthContext';
 
 const Sidebar: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const path = location.pathname.replace('/', '') || 'home';
   const pageTitle = path.charAt(0).toUpperCase() + path.slice(1);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const isActive = (to: string) => {
+    if (to === '/' && location.pathname === '/') return true;
+    return location.pathname === to;
+  };
+
+  const menuItemClass = (to: string) => 
+    `flex items-center p-2 rounded pr-8  ${
+      isActive(to) ? 'bg-teal-500' : 'hover:bg-teal-500'
+    }`;
 
   return (
     <div
@@ -17,7 +41,7 @@ const Sidebar: React.FC = () => {
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
     >
-      <div className="p-4">
+      <div className="p-4 flex flex-col h-full">
         <h2
           className={`text-2xl font-bold mb-8 transition-opacity duration-200 ${
             isExpanded ? 'opacity-100' : 'opacity-0'
@@ -26,11 +50,12 @@ const Sidebar: React.FC = () => {
           {pageTitle}
         </h2>
 
-        <nav>
-          <ul className="space-y-2">
+        <nav className="flex flex-col h-full">
+          {/* Menu chính */}
+          <ul className="space-y-2 ">
             <li>
-              <Link to="/" className="flex items-center p-2 hover:bg-gray-100 rounded" title="Home">
-                <IoHomeOutline className="min-w-[24px] h-6" size={24} />
+              <Link to="/" className={menuItemClass('/')} title="Home">
+                <IoHomeOutline className="min-w-[24px] h-6 " size={24} />
                 <span className={`ml-3 transition-opacity duration-200 ${isExpanded ? 'opacity-100' : 'opacity-0'} whitespace-nowrap`}>
                   Home
                 </span>
@@ -38,7 +63,21 @@ const Sidebar: React.FC = () => {
             </li>
 
             <li>
-              <Link to="/setting" className="flex items-center p-2 hover:bg-gray-100 rounded" title="Setting">
+              <Link to="/about" className={menuItemClass('/about')} title="About">
+                <IoInformationCircleOutline className="min-w-[24px] h-6" size={24} />
+                <span className={`ml-3 transition-opacity duration-200 ${isExpanded ? 'opacity-100' : 'opacity-0'} whitespace-nowrap`}>
+                  About
+                </span>
+              </Link> 
+            </li>
+          </ul>
+
+          <div className="flex-grow"></div>
+
+          {/* Menu phụ */}
+          <ul className="space-y-2">
+            <li>
+              <Link to="/setting" className={menuItemClass('/setting')} title="Setting">
                 <IoSettingsOutline className="min-w-[24px] h-6" size={24} />
                 <span className={`ml-3 transition-opacity duration-200 ${isExpanded ? 'opacity-100' : 'opacity-0'} whitespace-nowrap`}>
                   Setting
@@ -47,7 +86,7 @@ const Sidebar: React.FC = () => {
             </li>
 
             <li>
-              <Link to="/contact" className="flex items-center p-2 hover:bg-gray-100 rounded" title="Contact">
+              <Link to="/contact" className={menuItemClass('/contact')} title="Contact">
                 <IoMailOutline className="min-w-[24px] h-6" size={24} />
                 <span className={`ml-3 transition-opacity duration-200 ${isExpanded ? 'opacity-100' : 'opacity-0'} whitespace-nowrap`}>
                   Contact
@@ -55,14 +94,20 @@ const Sidebar: React.FC = () => {
               </Link>
             </li>
 
-            <li>
-              <Link to="/about" className="flex items-center p-2 hover:bg-gray-100 rounded" title="About">
-                <IoInformationCircleOutline className="min-w-[24px] h-6" size={24} />
-                <span className={`ml-3 transition-opacity duration-200 ${isExpanded ? 'opacity-100' : 'opacity-0'} whitespace-nowrap`}>
-                  About
-                </span>
-              </Link>
-            </li>
+            {user && (
+              <li>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center p-2 hover:bg-teal-500 rounded w-full text-left"
+                  title="Logout"
+                >
+                  <IoLogOutOutline className="min-w-[24px] h-6" size={24} />
+                  <span className={`ml-3 transition-opacity duration-200 ${isExpanded ? 'opacity-100' : 'opacity-0'} whitespace-nowrap`}>
+                    Logout
+                  </span>
+                </button>
+              </li>
+            )}
           </ul>
         </nav>
       </div>

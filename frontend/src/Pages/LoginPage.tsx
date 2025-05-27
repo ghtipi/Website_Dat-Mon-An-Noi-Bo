@@ -10,10 +10,8 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Lấy đường dẫn trước đó từ state
   const from = (location.state as any)?.from?.pathname || '/';
 
-  // Kiểm tra trạng thái đăng nhập
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
@@ -31,11 +29,8 @@ const LoginPage = () => {
     setError('');
 
     try {
-      console.log('Sending login request with:', { email, password });
       const data = await apiCall('post', '/auth/login', { email, password });
-      console.log('Login response:', data);
-      
-      // Kiểm tra response có chứa thông tin user không
+
       if (!data.user) {
         throw new Error('Không nhận được thông tin người dùng');
       }
@@ -44,34 +39,27 @@ const LoginPage = () => {
         id: data.user.id,
         email: data.user.email,
         name: data.user.name,
-        role: data.user.role || 'user', // Mặc định là user nếu không có role
+        role: data.user.role || 'user',
       };
-      
-      console.log('User data:', userData); // Log để kiểm tra role
-      
-      // Lưu thông tin user
+
       localStorage.setItem('user', JSON.stringify(userData));
-      
-      // Lưu token nếu có
+
       if (data.token) {
         localStorage.setItem('token', data.token);
       }
 
-      // Chuyển hướng dựa trên role
       const role = userData.role.toLowerCase();
       if (role === 'admin') {
-        console.log('Redirecting to admin dashboard...');
         navigate('/admin/dashboard');
       } else if (role === 'manager') {
-        console.log('Redirecting to manager dashboard...');
         navigate('/manager/dashboard');
       } else {
-        console.log('Redirecting to user page...');
         navigate(from);
       }
     } catch (err: any) {
-      console.error('Login error:', err);
-      setError(err.error || 'Email hoặc mật khẩu không đúng');
+      // Không hiển thị thông tin nhạy cảm trong console
+      console.error('Đăng nhập thất bại.');
+      setError(err?.error || 'Email hoặc mật khẩu không đúng');
     }
   };
 
@@ -79,7 +67,10 @@ const LoginPage = () => {
   const passwordPlaceholder = useTypingEffect({ text: 'Nhập mật khẩu ... ', active: password === '' });
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-cover bg-center" style={{ backgroundImage: "url('/src/assets/images/background.png')" }}>
+    <div
+      className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-cover bg-center"
+      style={{ backgroundImage: "url('/src/assets/images/background.png')" }}
+    >
       <div className="w-full max-w-4xl bg-white/10 backdrop-blur-lg rounded-2xl shadow-4xl flex flex-col lg:flex-row overflow-hidden">
         {/* Left Section - Form */}
         <div className="w-full lg:w-1/2 p-8 sm:p-10 flex flex-col justify-center bg-black/20 backdrop-blur-sm">
