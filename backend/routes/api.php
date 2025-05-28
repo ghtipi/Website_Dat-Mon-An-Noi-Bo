@@ -10,9 +10,15 @@ use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\RatingController;
 use App\Http\Controllers\Api\PromotionController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\CommentController;
 use Illuminate\Support\Facades\Route;
 
+//các api không cần xác thực
 
+    Route::get('/categories/random', [CategoryController::class, 'randomCategories']);
+    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/menu', [MenuController::class, 'index']);
+    Route::get('/ratings', [RatingController::class, 'index']);
 
 Route::group(['prefix' => 'auth'], function () {
     Route::post('/register', [AuthController::class, 'register']);
@@ -25,13 +31,12 @@ Route::group(['prefix' => 'auth'], function () {
 });
 
 Route::middleware('auth:api')->group(function () {
-    Route::get('/categories', [CategoryController::class, 'index']);
+    
     Route::post('/categories', [CategoryController::class, 'store'])->middleware('role:admin');
     Route::get('/categories/{id}', [CategoryController::class, 'show']);
     Route::put('/categories/{id}', [CategoryController::class, 'update'])->middleware('role:admin');
     Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->middleware('role:admin');
 
-    Route::get('/menu', [MenuController::class, 'index']);
     Route::post('/menu', [MenuController::class, 'store'])->middleware('role:admin');
     Route::get('/menu/{id}', [MenuController::class, 'show']);
     Route::put('/menu/{id}', [MenuController::class, 'update'])->middleware('role:admin');
@@ -55,7 +60,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/reports', [ReportController::class, 'store'])->middleware('role:admin');
     Route::get('/reports/{id}', [ReportController::class, 'show'])->middleware('role:admin');
 
-    Route::get('/ratings', [RatingController::class, 'index']);
+    
     Route::post('/ratings', [RatingController::class, 'store']);
     Route::get('/ratings/{id}', [RatingController::class, 'show']);
 
@@ -69,4 +74,12 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/payments', [PaymentController::class, 'store']);
     Route::get('/payments/{id}', [PaymentController::class, 'show']);
     Route::put('/payments/{id}', [PaymentController::class, 'update'])->middleware('role:admin');
+
+    // Thêm các route cho CommentController
+    Route::get('/comments', [CommentController::class, 'index']);
+    Route::get('/comments/{id}', [CommentController::class, 'show']);
+    Route::post('/comments', [CommentController::class, 'store']);
+    Route::put('/comments/{id}', [CommentController::class, 'update']);
+    Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
+
 });

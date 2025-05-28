@@ -1,10 +1,10 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
-import LoginPage from './Pages/LoginPage';
-import AdminDashboard from './Pages/AdminDashboard';
-import ManagerDashboard from './Pages/ManagerDashboard';
-import HomePage from './Pages/HomePage';
+import LoginPage from './Pages/Auth/LoginPage';
+import AdminDashboard from './Pages/Admin/AdminDashboard';
+import ManagerDashboard from './Pages/Admin/ManagerDashboard';
+import HomePage from './Pages/User/HomePage';
 import UserSidebar from './components/UserSidebar';
 import AdminSidebar from './components/AdminSidebar';
 import ManagerSidebar from './components/ManagerSidebar';

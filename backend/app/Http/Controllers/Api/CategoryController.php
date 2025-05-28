@@ -60,4 +60,11 @@ class CategoryController extends Controller
         $category->delete();
         return response()->json(null, 204);
     }
+    //lấy ngẫu nhiên 8 danh mục để hiển thị trên trang chủ
+     public function randomCategories()
+{
+    $categories = Category::all()->shuffle()->take(8)->values();
+    return response()->json($categories);
+}
+
 }

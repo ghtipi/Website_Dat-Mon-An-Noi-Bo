@@ -1,11 +1,13 @@
 import React from 'react';
-import AdminSidebar from '../components/AdminSidebar';
+import AdminSidebar from '../../components/AdminSidebar';
+import Header from '../../components/Layout/Header';
 
 const AdminDashboard: React.FC = () => {
   return (
     <div className="flex">
+      <Header />
       <AdminSidebar />
-      <main className="ml-64 p-8 w-full">
+      <main className=" mt-32 ml-64 p-8 w-full">
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
           

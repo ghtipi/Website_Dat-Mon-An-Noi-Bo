@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import useTypingEffect from '../hooks/useTypingEffect';
-import apiCall from '../Api/axios';
+import useTypingEffect from '../../hooks/useTypingEffect';
+import apiCall from '../../Api/axios';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
