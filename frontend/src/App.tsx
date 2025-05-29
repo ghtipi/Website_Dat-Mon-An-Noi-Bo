@@ -1,12 +1,13 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import Header from './components/Layout/Header';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './Pages/Auth/LoginPage';
 import AdminDashboard from './Pages/Admin/AdminDashboard';
-import ManagerDashboard from './Pages/Admin/ManagerDashboard';
+import ManagerDashboard from './Pages/Manager/ManagerDashboard';
 import HomePage from './Pages/User/HomePage';
-import UserSidebar from './components/UserSidebar';
-import AdminSidebar from './components/AdminSidebar';
+import UserSidebar from './components/Layout/Sidebar';
+import AdminSidebar from './components/Layout/SidebarAdmin';
 import ManagerSidebar from './components/ManagerSidebar';
 
 function App() {
@@ -23,11 +24,12 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <div className="flex">
+                <Header />
                 <AdminSidebar />
                 <div className="flex-1">
                   <Routes>
-                    <Route path="dashboard" element={<AdminDashboard />} />
-                    {/* Thêm các route admin khác ở đây */}
+                    <Route path="/" element={<AdminDashboard />} />
+                    {/* các route admin khác */}
                   </Routes>
                 </div>
               </div>
@@ -41,11 +43,12 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['manager']}>
               <div className="flex">
+                <Header />
                 <ManagerSidebar />
                 <div className="flex-1">
                   <Routes>
                     <Route path="dashboard" element={<ManagerDashboard />} />
-                    {/* Thêm các route quản lý khác ở đây */}
+                    {/* các route quản lý  */}
                   </Routes>
                 </div>
               </div>
@@ -59,10 +62,11 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['user']}>
               <div className="flex">
+                <Header />
                 <UserSidebar />
                 <div className="flex-1">
                   <Routes>
-                    {/* Thêm các route user ở đây */}
+                    {/*  các route user  */}
                   </Routes>
                 </div>
               </div>

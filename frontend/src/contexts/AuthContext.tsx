@@ -5,8 +5,9 @@ interface User {
   id: string;
   email: string;
   name?: string;
-  role?: 'admin' | 'user'| 'manager';
+  role?: 'admin' | 'user' | 'manager';
 }
+
 
 interface AuthContextType {
   user: User | null;
@@ -20,36 +21,42 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
 
+  // Khi component mount, lấy user từ localStorage nếu có
   useEffect(() => {
-    // Kiểm tra xem có thông tin đăng nhập trong localStorage không
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        localStorage.removeItem('user');
+      }
     }
   }, []);
 
+  // Hàm login gọi API
   const login = async (email: string, password: string) => {
-    try {
-      const data = await apiCall('post', '/login', { email, password });
-      
-      const userData = {
-        id: data.id,
-        email: data.email,
-        role: data.role,
+  try {
+    const data = await apiCall('post', '/auth/login', { email, password });
+
+    const userData = {
+        id: data.user.id,
+        email: data.user.email,
+        name: data.user.name,
+        role: data.user.role || 'user',
       };
-      
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-      
-      // Lưu token nếu có
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-      }
-    } catch (error: any) {
-      console.error('Login error:', error);
-      throw new Error(error.error || 'Đăng nhập thất bại');
+
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+    
+
+    if (data.token) {
+      localStorage.setItem('token', data.token);
     }
-  };
+  } catch (error: any) {
+    // xử lý lỗi
+  }
+};
+
 
   const logout = () => {
     setUser(null);
@@ -64,10 +71,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
-export const useAuth = () => {
+
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}; 
+};

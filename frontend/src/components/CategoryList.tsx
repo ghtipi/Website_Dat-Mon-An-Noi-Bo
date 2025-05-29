@@ -85,7 +85,7 @@ const CategoryList: React.FC = () => {
             className={`flex flex-col items-center p-2 rounded-xl border shadow-lg hover:shadow-2xl transition-all duration-300 group 
               ${category.slug === 'all' ? 'bg-teal-500/80 text-white border-teal-600' : 'bg-white/30 backdrop-blur-md border-gray-300'}`}
           >
-            <span className="font-medium text-center text-sm group-hover:text-white transition-colors duration-300">
+            <span className="font-medium text-center text-sm group-hover:text-teal-600 transition-colors duration-300">
               {category.name}
             </span>
           </Link>

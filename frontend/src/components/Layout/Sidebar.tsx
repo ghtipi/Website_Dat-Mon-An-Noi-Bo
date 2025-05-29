@@ -71,7 +71,7 @@ const Sidebar: React.FC = () => {
           <div className="flex-grow"></div>
 
           {/* Menu phụ */}
-          <ul className="space-y-2 mb-16">
+          <ul className="space-y-2 mb-16 ">
             <li>
               <Link to="/setting" className={menuItemClass('/setting')} title="Setting">
                 <IoSettingsOutline className="min-w-[24px] h-6" size={24} />

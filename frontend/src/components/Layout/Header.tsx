@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import useTypingEffect from '../../hooks/useTypingEffect';
 import TimeInfo from '../../components/TimeInfo';
 import { useAuth } from '../../contexts/AuthContext';
@@ -12,10 +12,12 @@ const Header = () => {
   const hideMenuTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
-  const isOnAdminPage = location.pathname.startsWith('/admin');
 
+  const isOnAdminPage = location.pathname.startsWith('/admin');
   const isLoggedIn = !!user;
+
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,12 +41,21 @@ const Header = () => {
 
   const getDisplayName = () => {
     return user?.name || 'User';
+    
+  };
+
+  const getPlaceholderText = () => {
+    if (location.pathname.startsWith('/admin')) return 'Nhập tìm kiếm của bạn...';
+    if (location.pathname.startsWith('/manager')) return 'Tìm kiếm dữ liệu quản lý...';
+    return 'Tìm kiếm món ăn...';
   };
 
   const sreachPlaceholder = useTypingEffect({
-    text: 'Tìm kiếm món ăn...',
+    text: getPlaceholderText(),
     active: searchQuery === '',
+    
   });
+
 
   const clearHideTimeout = () => {
     if (hideMenuTimeout.current) {
@@ -86,7 +97,7 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-transparent backdrop-blur-sm border-b border-white/40 shadow-md z-50">
+    <header className="fixed top-0 left-0 right-0 bg-transparent backdrop-blur-sm border-b border-white/40 shadow-md z-50 pb-1">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -171,14 +182,21 @@ const Header = () => {
                       </p>
                     </div>
 
-                    {user?.role === 'admin' && (
-                      <Link
-                        to={isOnAdminPage ? '/' : '/admin/dashboard'}
-                        className="block px-4 py-2 text-gray-700 hover:bg-teal-100"
-                      >
-                        {isOnAdminPage ? 'Về trang chính' : 'Admin'}
-                      </Link>
-                    )}
+                    {(user?.role === 'admin' || user?.role === 'manager') && (
+                        <Link
+                          to={
+                            isOnAdminPage
+                              ? '/' 
+                              : user.role === 'admin'
+                              ? '/admin'
+                              : '/manager'
+                          }
+                          className="block px-4 py-2 text-gray-700 hover:bg-teal-100"
+                        >
+                          {isOnAdminPage ? 'Về trang chính' : user.role === 'admin' ? 'Admin' : 'Manager'}
+                        </Link>
+                      )}
+
                     <Link
                       to="/profile"
                       className="block px-4 py-2 text-gray-700 hover:bg-teal-100"

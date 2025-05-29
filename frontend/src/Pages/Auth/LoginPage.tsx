@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useTypingEffect from '../../hooks/useTypingEffect';
-import apiCall from '../../Api/axios';
+import { useAuth } from '../../contexts/AuthContext';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -10,8 +10,10 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = (location.state as any)?.from?.pathname || '/';
+  const { login, } = useAuth();
 
+  const from = (location.state as any)?.from?.pathname || '/';
+    
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
@@ -29,37 +31,30 @@ const LoginPage = () => {
     setError('');
 
     try {
-      const data = await apiCall('post', '/auth/login', { email, password });
+      await login(email, password); 
 
-      if (!data.user) {
-        throw new Error('Không nhận được thông tin người dùng');
-      }
+      
+      const storedUser = localStorage.getItem('user');
+      const user = storedUser ? JSON.parse(storedUser) : null;
 
-      const userData = {
-        id: data.user.id,
-        email: data.user.email,
-        name: data.user.name,
-        role: data.user.role || 'user',
-      };
 
-      localStorage.setItem('user', JSON.stringify(userData));
+      
 
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-      }
-
-      const role = userData.role.toLowerCase();
-      if (role === 'admin') {
-        navigate('/admin/dashboard');
-      } else if (role === 'manager') {
-        navigate('/manager/dashboard');
+      if (user) {
+        
+        const role = user.role?.toLowerCase();
+        if (user.role === 'admin') {
+          navigate('/admin');
+        } else if (role === 'manager') {
+          navigate('/manager');
+        } else {
+          navigate(from);
+        }
       } else {
         navigate(from);
       }
     } catch (err: any) {
-      // Không hiển thị thông tin nhạy cảm trong console
-      console.error('Đăng nhập thất bại.');
-      setError(err?.error || 'Email hoặc mật khẩu không đúng');
+      setError(err.message || 'Email hoặc mật khẩu không đúng');
     }
   };
 
@@ -67,7 +62,7 @@ const LoginPage = () => {
   const passwordPlaceholder = useTypingEffect({ text: 'Nhập mật khẩu ... ', active: password === '' });
 
   return (
-    <div
+    <div 
       className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-cover bg-center"
       style={{ backgroundImage: "url('/src/assets/images/background.png')" }}
     >
