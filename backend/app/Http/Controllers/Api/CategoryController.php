@@ -19,7 +19,10 @@ class CategoryController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'description' => 'string|nullable',
+            'slug' => 'required|string|max:255|unique:categories,slug',
+            'parent_id' => 'nullable|exists:categories,_id',
+            'image' => 'nullable|url', 
+            'description' => 'nullable|string',
             'status' => 'boolean',
         ]);
 
@@ -63,7 +66,7 @@ class CategoryController extends Controller
     //lấy ngẫu nhiên 8 danh mục để hiển thị trên trang chủ
      public function randomCategories()
 {
-    $categories = Category::all()->shuffle()->take(8)->values();
+    $categories = Category::all()->shuffle()->take(5)->values();
     return response()->json($categories);
 }
 

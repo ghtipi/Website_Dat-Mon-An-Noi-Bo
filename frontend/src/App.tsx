@@ -29,7 +29,7 @@ function App() {
                 <div className="flex-1">
                   <Routes>
                     <Route path="/" element={<AdminDashboard />} />
-                    {/* các route admin khác */}
+                    
                   </Routes>
                 </div>
               </div>

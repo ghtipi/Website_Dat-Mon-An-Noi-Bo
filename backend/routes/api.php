@@ -42,7 +42,7 @@ Route::middleware('auth:api')->group(function () {
     Route::put('/menu/{id}', [MenuController::class, 'update'])->middleware('role:admin');
     Route::delete('/menu/{id}', [MenuController::class, 'destroy'])->middleware('role:admin');
 
-    Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders', [OrderController::class, 'index']); 
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/orders/{id}', [OrderController::class, 'show']);
     Route::put('/orders/{id}', [OrderController::class, 'update'])->middleware('role:admin');

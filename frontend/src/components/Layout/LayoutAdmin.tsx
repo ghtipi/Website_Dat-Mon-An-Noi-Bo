@@ -1,5 +1,5 @@
 import React from 'react';
-import Header from './Header';
+import HeaderAdmin from './HeaderAdmin';
 import SidebarAdmin from './SidebarAdmin';
 
 interface LayoutAdminProps {
@@ -9,10 +9,10 @@ interface LayoutAdminProps {
 
 const LayoutAdmin: React.FC<LayoutAdminProps> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-gray-300 bg-cover bg-center">
-      <Header />
+    <div className="min-h-screen ">
+      <HeaderAdmin />
       <SidebarAdmin />
-      <div className="ml-8 p-8 pt-6">
+      <div className="ml-8 p-8 pt-24">
         {children}
       </div>
     </div>
