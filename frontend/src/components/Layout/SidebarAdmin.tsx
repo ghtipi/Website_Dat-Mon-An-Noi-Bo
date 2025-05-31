@@ -9,6 +9,7 @@ import {
   MdSettings,
   MdBarChart,
   MdLogout,
+  MdCategory
 } from 'react-icons/md';
 
 const AdminSidebar: React.FC = () => {
@@ -19,6 +20,7 @@ const AdminSidebar: React.FC = () => {
   const navItems = [
     { to: '/admin', label: 'Dashboard', icon: MdDashboard },
     { to: '/admin/users', label: 'Users', icon: MdPeople },
+    { to: '/admin/categories', label: 'Categories', icon: MdCategory },
     { to: '/admin/products', label: 'Products', icon: MdInventory2 },
     { to: '/admin/orders', label: 'Orders', icon: MdShoppingCart },
     { to: '/admin/reports', label: 'Reports', icon: MdBarChart },

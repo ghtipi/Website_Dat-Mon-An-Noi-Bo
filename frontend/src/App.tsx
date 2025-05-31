@@ -9,6 +9,7 @@ import HomePage from './Pages/User/HomePage';
 import UserSidebar from './components/Layout/Sidebar';
 import AdminSidebar from './components/Layout/SidebarAdmin';
 import ManagerSidebar from './components/ManagerSidebar';
+import AdminCategoryPage from './Pages/Admin/Category/AdminCategoryPage';
 
 function App() {
   return (
@@ -29,7 +30,8 @@ function App() {
                 <div className="flex-1">
                   <Routes>
                     <Route path="/" element={<AdminDashboard />} />
-                    
+                    <Route path="categories" element={<AdminCategoryPage />} />
+                    {/* các route quản lý khác */}
                   </Routes>
                 </div>
               </div>
