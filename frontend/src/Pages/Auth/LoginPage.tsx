@@ -116,13 +116,6 @@ const LoginPage = () => {
             </div>
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
-                />
-                <label htmlFor="remember-me" className="ml-2 text-white">Ghi nhớ đăng nhập</label>
               </div>
               <a href="#" className="text-teal-400 hover:text-teal-300 font-medium transition duration-200">
                 Quên mật khẩu?

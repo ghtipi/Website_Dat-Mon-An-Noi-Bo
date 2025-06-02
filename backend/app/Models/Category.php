@@ -10,7 +10,7 @@ class Category extends Model
     protected $collection = 'categories';
 
     protected $fillable = [
-        'name','slug','description','parent_id','image', 'status',
+        'name','slug','description','image', 'status',
     ];
 
     public function menuItems()

@@ -24,14 +24,13 @@ const EditCategory: React.FC<EditCategoryProps> = ({
     parentId: category.parentId ?? '',
     slug: category.slug || '',
     image: category.image || '',
+    status: category.status === 'active' ? 'active' : 'inactive', // Chuẩn hóa thành 'active' hoặc 'inactive'
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Đồng bộ ảnh preview với formData.image
-  const [imagePreview, setImagePreview] = useState<string>(category.image || '');
+  const [imagePreview, setImagePreview] = useState<string | null>(category.image || '');
 
   useEffect(() => {
     setFormData({
@@ -41,6 +40,7 @@ const EditCategory: React.FC<EditCategoryProps> = ({
       parentId: category.parentId ?? '',
       slug: category.slug || '',
       image: category.image || '',
+      status: category.status === 'active' ? 'active' : 'inactive',
     });
     setImagePreview(category.image || '');
   }, [category]);
@@ -51,8 +51,14 @@ const EditCategory: React.FC<EditCategoryProps> = ({
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      // ParentId kiểu string cho input, convert sang number khi submit
       [name]: name === 'parentId' ? value : value,
+    }));
+  };
+
+  const handleStatusToggle = () => {
+    setFormData((prev) => ({
+      ...prev,
+      status: prev.status === 'active' ? 'inactive' : 'active',
     }));
   };
 
@@ -64,24 +70,31 @@ const EditCategory: React.FC<EditCategoryProps> = ({
     setError(null);
 
     try {
-        const uploadResult = await uploadImage(file);
-        const imageUrl = uploadResult.secure_url;  // Sửa đây
-        setFormData((prev) => ({ ...prev, image: imageUrl }));
-        setImagePreview(imageUrl);
+      const uploadResult = await uploadImage(file);
+      const imageUrl = uploadResult.secure_url;
+      setFormData((prev) => ({ ...prev, image: imageUrl }));
+      setImagePreview(imageUrl);
     } catch (err) {
-        setError('Lỗi khi tải ảnh lên. Vui lòng thử lại.');
-        console.error('Upload failed:', err);
+      setError('Lỗi khi tải ảnh lên. Vui lòng thử lại.');
+      console.error('Lỗi tải ảnh:', err);
     } finally {
-        setImageUploading(false);
+      setImageUploading(false);
     }
-    };
+  };
+
+  const handleRemoveImage = () => {
+    setFormData((prev) => ({
+      ...prev,
+      image: ''
+    }));
+    setImagePreview(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    // Chuẩn hóa dữ liệu trước khi gửi
     const submitData = {
       ...formData,
       parentId: formData.parentId ? Number(formData.parentId) : null,
@@ -93,26 +106,28 @@ const EditCategory: React.FC<EditCategoryProps> = ({
       await refreshCategories();
     } catch (err: any) {
       setError(err.message || 'Cập nhật danh mục thất bại');
-      console.error('Update error:', err);
+      console.error('Lỗi cập nhật:', err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
-        <h2 className="text-xl font-bold mb-4">Chỉnh sửa danh mục</h2>
+    <div className="fixed inset-0 bg-gradient-to-br from-gray-900/90 to-gray-800/90 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-8 transition-all duration-300 transform">
+        <h2 className="text-3xl font-bold text-gray-800 mb-6 tracking-tight text-center">Chỉnh Sửa Danh Mục</h2>
 
         {error && (
-          <p className="text-red-600 bg-red-100 p-2 rounded mb-4">{error}</p>
+          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg mb-6 animate-fade-in">
+            {error}
+          </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-
-          <div className="mb-4">
-            <label htmlFor="name" className="block text-gray-700 font-semibold mb-1">
-              Tên danh mục <span className="text-red-500">*</span>
+        <div className="space-y-6">
+          {/* Tên danh mục */}
+          <div>
+            <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
+              Tên Danh Mục <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -120,49 +135,34 @@ const EditCategory: React.FC<EditCategoryProps> = ({
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 disabled:bg-gray-200"
               placeholder="Nhập tên danh mục"
               required
-              disabled={loading}
+              disabled={loading || imageUploading}
             />
           </div>
 
-          <div className="mb-4">
-            <label htmlFor="description" className="block text-gray-700 font-semibold mb-1">
-              Mô tả
+          {/* Mô tả */}
+          <div>
+            <label htmlFor="description" className="block text-sm font-semibold text-gray-700 mb-2">
+              Mô Tả
             </label>
             <textarea
               id="description"
               name="description"
               value={formData.description}
               onChange={handleChange}
-              rows={3}
-              className="w-full p-2 border border-gray-300 rounded"
+              rows={4}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 disabled:bg-gray-200 resize-y"
               placeholder="Nhập mô tả danh mục"
-              disabled={loading}
+              disabled={loading || imageUploading}
             />
           </div>
 
-          <div className="mb-4">
-            <label htmlFor="parentId" className="block text-gray-700 font-semibold mb-1">
-              ID danh mục cha
-            </label>
-            <input
-              type="number"
-              id="parentId"
-              name="parentId"
-              value={formData.parentId}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded"
-              placeholder="Nhập ID danh mục cha hoặc để trống"
-              disabled={loading}
-              min={1}
-            />
-          </div>
-
-          <div className="mb-4">
-            <label htmlFor="slug" className="block text-gray-700 font-semibold mb-1">
-              Slug
+          {/* Slug */}
+          <div>
+            <label htmlFor="slug" className="block text-sm font-semibold text-gray-700 mb-2">
+              Đường Dẫn Tĩnh (Slug)
             </label>
             <input
               type="text"
@@ -170,76 +170,108 @@ const EditCategory: React.FC<EditCategoryProps> = ({
               name="slug"
               value={formData.slug}
               onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded"
-              placeholder="Nhập slug (đường dẫn tĩnh)"
-              disabled={loading}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 disabled:bg-gray-200"
+              placeholder="Nhập slug (ví dụ: mon-khai-vi)"
+              disabled={loading || imageUploading}
             />
           </div>
 
-          <div className="mb-4">
-            <label className="block text-gray-700 font-semibold mb-1">
-              Ảnh danh mục
+          {/* Trạng thái */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Trạng Thái
             </label>
-            {imagePreview && (
-              <div className="mb-2">
-                <img
-                  src={imagePreview}
-                  alt="Ảnh danh mục"
-                  className="w-32 h-32 object-cover rounded"
+            <div className="flex items-center">
+              <button
+                type="button"
+                onClick={handleStatusToggle}
+                disabled={loading || imageUploading}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-in-out ${
+                  formData.status === 'active' ? 'bg-green-500' : 'bg-gray-300'
+                } ${loading || imageUploading ? 'cursor-not-allowed opacity-50' : ''}`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 rounded-full bg-white transform transition-transform duration-200 ease-in-out ${
+                    formData.status === 'active' ? 'translate-x-5' : 'translate-x-1'
+                  }`}
                 />
-              </div>
-            )}
+              </button>
+              <span className="ml-3 text-gray-700 font-medium">
+                {formData.status === 'active' ? 'Kích Hoạt' : 'Không Kích Hoạt'}
+              </span>
+            </div>
+          </div>
 
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleImageChange}
-              accept="image/*"
-              className="hidden"
-              disabled={loading || imageUploading}
-            />
+          {/* Ảnh danh mục */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Ảnh Danh Mục
+            </label>
+            <div className="mt-2 space-y-4">
+              {imagePreview ? (
+                <div className="relative w-fit">
+                  <img
+                    src={imagePreview}
+                    alt="Ảnh danh mục"
+                    className="w-48 h-48 object-cover rounded-lg shadow-md"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="absolute -top-3 -right-3 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors duration-200 shadow-lg disabled:bg-gray-400"
+                    title="Xóa ảnh"
+                    disabled={loading || imageUploading}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm italic">Chưa chọn ảnh</p>
+              )}
+
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageChange}
+                accept="image/*"
+                className="hidden"
+                disabled={loading || imageUploading}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="bg-indigo-100 text-indigo-700 px-5 py-2.5 rounded-lg hover:bg-indigo-200 transition-colors duration-200 text-sm font-semibold shadow-sm disabled:bg-gray-300 disabled:text-gray-500"
+                disabled={loading || imageUploading}
+              >
+                {imageUploading
+                  ? 'Đang tải ảnh...'
+                  : imagePreview
+                  ? 'Thay Đổi Ảnh'
+                  : 'Tải Ảnh Lên'}
+              </button>
+            </div>
+          </div>
+
+          {/* Nút điều khiển */}
+          <div className="flex gap-4 mt-8">
             <button
               type="button"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={handleSubmit}
               disabled={loading || imageUploading}
-              className={`px-4 py-2 rounded ${
-                imageUploading
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-gray-200 hover:bg-gray-300'
-              }`}
+              className="flex-1 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 transition-all duration-200 font-semibold shadow-md"
             >
-              {imageUploading
-                ? 'Đang tải ảnh...'
-                : imagePreview
-                ? 'Thay đổi ảnh'
-                : 'Tải ảnh lên'}
+              {loading ? 'Đang Cập Nhật...' : 'Cập Nhật Danh Mục'}
             </button>
-          </div>
-
-          <div className="flex gap-4">
-            <button
-              type="submit"
-              disabled={loading || imageUploading}
-              className={`px-4 py-2 rounded text-white ${
-                loading
-                  ? 'bg-blue-400 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700'
-              }`}
-            >
-              {loading ? 'Đang cập nhật...' : 'Cập nhật danh mục'}
-            </button>
-
             <button
               type="button"
               onClick={onCancel}
+              className="flex-1 bg-gray-200 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-300 transition-all duration-200 font-semibold shadow-md disabled:bg-gray-300 disabled:text-gray-500"
               disabled={loading || imageUploading}
-              className="px-4 py-2 rounded bg-gray-500 text-white hover:bg-gray-600"
             >
               Hủy
             </button>
           </div>
-
-        </form>
+        </div>
       </div>
     </div>
   );

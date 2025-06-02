@@ -34,10 +34,9 @@ class CategoryController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:categories,slug',
-            'parent_id' => 'nullable|exists:categories,id',
             'image' => 'nullable|url',
             'description' => 'nullable|string',
-            'status' => 'boolean',
+            'status' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -74,10 +73,9 @@ class CategoryController extends Controller
             $validator = Validator::make($request->all(), [
                 'name' => 'string|max:255',
                 'slug' => 'string|max:255|unique:categories,slug,' . $category->id,
-                'parent_id' => 'nullable|exists:categories,id',
                 'image' => 'nullable|url',
                 'description' => 'nullable|string',
-                'status' => 'boolean',
+                'status' => 'nullable|string',
             ]);
 
             if ($validator->fails()) {
@@ -112,32 +110,20 @@ class CategoryController extends Controller
      * Lấy ngẫu nhiên 5 danh mục để hiển thị trên trang chủ
      */
     public function randomCategories()
-    {
-        $categories = Category::all()->shuffle()->take(5)->values();
-        return response()->json($categories);
-    }
+{
+    $categories = Category::raw(function ($collection) {
+        return $collection->aggregate([
+            ['$match' => ['status' => 'active']],
+            ['$sample' => ['size' => 5]],
+        ]);
+    });
 
-    /**
-     * Lấy danh sách các danh mục cha (không có parent_id)
-     */
-    public function getParentCategories()
-    {
-        $parentCategories = Category::whereNull('parent_id')->get();
-        return response()->json($parentCategories);
-    }
+    return response()->json($categories);
+}
 
-    /**
-     * Lấy danh sách các danh mục con theo danh mục cha
-     */
-    public function getChildCategories($parentId)
-    {
-        try {
-            $childCategories = Category::where('parent_id', $parentId)->get();
-            return response()->json($childCategories);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Parent category not found'], 404);
-        }
-    }
+
+    
+
 
     /**
      * Tìm kiếm và lọc danh mục
@@ -156,11 +142,6 @@ class CategoryController extends Controller
         // Lọc theo trạng thái
         if ($request->has('status')) {
             $query->where('status', $request->status);
-        }
-
-        // Lọc theo danh mục cha
-        if ($request->has('parent_id')) {
-            $query->where('parent_id', $request->parent_id);
         }
 
         // Sắp xếp

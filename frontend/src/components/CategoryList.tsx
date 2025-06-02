@@ -14,7 +14,7 @@ const CategoryList: React.FC = () => {
         const data = await categoryService.getAllCategories();
         // Thêm "Tất cả" vào đầu danh sách
         const allCategory: Category = {
-          id: 'all', // dùng string để tránh trùng với các id thật
+          id: 'all', 
           name: 'Tất cả',
           slug: 'all',
         };

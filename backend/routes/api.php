@@ -39,8 +39,6 @@ Route::middleware('auth:api')->group(function () {
     Route::put('/categories/{id}', [CategoryController::class, 'update'])->middleware('role:admin');
     Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->middleware('role:admin');
     Route::get('/categories/search', [CategoryController::class, 'search'])->middleware('role:admin');
-    Route::get('/categories/parent', [CategoryController::class, 'getParentCategories'])->middleware('role:admin');
-    Route::get('/categories/children/{parentId}', [CategoryController::class, 'getChildCategories'])->middleware('role:admin');
 
     Route::post('/menu', [MenuController::class, 'store'])->middleware('role:admin');
     Route::get('/menu/{id}', [MenuController::class, 'show']);

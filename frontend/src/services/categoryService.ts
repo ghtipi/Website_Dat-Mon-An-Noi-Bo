@@ -1,7 +1,7 @@
 import apiCall from '../Api/axios';
 
 export interface Category {
-  _id: string;
+  id: string;
   name: string;
   slug: string;
   description?: string;
@@ -21,7 +21,7 @@ export interface CategoryFilter {
 export const categoryService = {
   getAllCategories: async (filters?: CategoryFilter): Promise<Category[]> => {
     try {
-      const response = await apiCall('get', '/categories', { params: filters });
+      const response = await apiCall('get', '/categories/random', { params: filters });
       return response;
     } catch (error) {
       console.error('Error fetching categories:', error);
