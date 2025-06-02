@@ -20,10 +20,28 @@ export interface MenuData {
   stock?: number;
 }
 
+// Interface for filter parameters
+export interface MenuFilterParams {
+  category_id?: string;
+  price_min?: number;
+  price_max?: number;
+  status?: string;
+  search?: string;
+}
 
-export const getMenus = async (token: string): Promise<MenuData[]> => {
+export const getMenus = async (token: string, filters?: MenuFilterParams): Promise<MenuData[]> => {
   try {
-    const response = await axios.get(`${API_BASE}/menu-items`, authHeaders(token));
+    // Build query string from filter parameters
+    const params = new URLSearchParams();
+    if (filters) {
+      if (filters.category_id) params.append('category_id', filters.category_id);
+      if (filters.price_min !== undefined) params.append('price_min', filters.price_min.toString());
+      if (filters.price_max !== undefined) params.append('price_max', filters.price_max.toString());
+      if (filters.status) params.append('status', filters.status);
+      if (filters.search) params.append('search', filters.search);
+    }
+
+    const response = await axios.get(`${API_BASE}/menu-items?${params.toString()}`, authHeaders(token));
     if (!response.data) {
       throw new Error('Không có dữ liệu trả về từ server');
     }

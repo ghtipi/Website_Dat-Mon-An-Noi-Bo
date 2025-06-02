@@ -6,21 +6,73 @@ use App\Models\MenuItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
-// use MongoDB\BSON\ObjectId; // Commented out because ObjectId is not defined
 
 class MenuController extends Controller
 {
     // Dành cho người dùng - chỉ hiển thị các món có status 'active'
-    public function index()
+    public function index(Request $request)
     {
-        $items = MenuItem::where('status', 'active')->get();
+        $query = MenuItem::where('status', 'active');
+
+        // Lọc theo danh mục
+        if ($request->has('category_id')) {
+            $query->where('category_id', $request->input('category_id'));
+        }
+
+        // Lọc theo giá
+        if ($request->has('price_min') && is_numeric($request->input('price_min'))) {
+            $query->where('price', '>=', (float) $request->input('price_min'));
+        }
+        if ($request->has('price_max') && is_numeric($request->input('price_max'))) {
+            $query->where('price', '<=', (float) $request->input('price_max'));
+        }
+
+        // Tìm kiếm theo tên hoặc mô tả
+        if ($request->has('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $items = $query->get();
         return response()->json($items);
     }
 
-    // Dành cho admin - lấy toàn bộ menu không lọc theo status
-    public function adminIndex()
+    // Dành cho admin - lấy toàn bộ menu với khả năng lọc và tìm kiếm
+    public function adminIndex(Request $request)
     {
-        $items = MenuItem::all();
+        $query = MenuItem::query();
+
+        // Lọc theo danh mục
+        if ($request->has('category_id')) {
+            $query->where('category_id', $request->input('category_id'));
+        }
+
+        // Lọc theo giá
+        if ($request->has('price_min') && is_numeric($request->input('price_min'))) {
+            $query->where('price', '>=', (float) $request->input('price_min'));
+        }
+        if ($request->has('price_max') && is_numeric($request->input('price_max'))) {
+            $query->where('price', '<=', (float) $request->input('price_max'));
+        }
+
+        // Lọc theo trạng thái
+        if ($request->has('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        // Tìm kiếm theo tên hoặc mô tả
+        if ($request->has('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $items = $query->get();
         return response()->json($items);
     }
 
@@ -64,7 +116,7 @@ class MenuController extends Controller
     // Admin cập nhật món ăn
     public function adminUpdate(Request $request, $id)
     {
-        $item = MenuItem::where('_id',$id)->firstOrFail();
+        $item = MenuItem::where('_id', $id)->firstOrFail();
 
         $validator = Validator::make($request->all(), [
             'name' => 'string|max:255',

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import LayoutAdmin from '../../../components/Layout/LayoutAdmin';
 import { getMenus, MenuData, updateMenu, getMenu, deleteMenu } from '../../../services/admin/Menu';
 import { getCategories, CategoryData } from '../../../services/admin/Category';
@@ -13,12 +13,28 @@ const AdminMenuPage: React.FC = () => {
   const [editingMenu, setEditingMenu] = useState<MenuData | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const token = localStorage.getItem('token') || '';
+  const [filters, setFilters] = useState({
+    category_id: '',
+    price_range: '',
+    status: '',
+    search: '',
+  });
 
-  const fetchMenusAndCategories = async () => {
+  const fetchMenusAndCategories = useCallback(async () => {
     try {
       setLoading(true);
+      const filterParams: { category_id?: string; price_min?: number; price_max?: number; status?: string; search?: string } = {};
+      if (filters.category_id) filterParams.category_id = filters.category_id;
+      if (filters.price_range) {
+        const [min, max] = filters.price_range.split('-').map(Number);
+        filterParams.price_min = min;
+        filterParams.price_max = max;
+      }
+      if (filters.status) filterParams.status = filters.status;
+      if (filters.search) filterParams.search = filters.search;
+
       const [menuData, categoryData] = await Promise.all([
-        getMenus(token),
+        getMenus(token, filterParams),
         getCategories(token),
       ]);
       setMenuItems(menuData);
@@ -29,63 +45,76 @@ const AdminMenuPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, filters]);
 
   useEffect(() => {
     fetchMenusAndCategories();
-  }, [token]);
+  }, [fetchMenusAndCategories]);
 
-  const handleStatusToggle = async (menu: MenuData) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleFilterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchMenusAndCategories();
+  };
+
+  const handleStatusToggle = useCallback(async (menu: MenuData) => {
     try {
       const updatedStatus = menu.status === 'active' ? 'inactive' : 'active';
       const updatedMenu: MenuData = { ...menu, status: updatedStatus };
       await updateMenu(token, menu.id, updatedMenu);
-      setMenuItems(menuItems.map(item => 
+      setMenuItems((prev) => prev.map(item => 
         item.id === menu.id ? updatedMenu : item
       ));
     } catch (err: any) {
       setError(err.message || 'Cập nhật trạng thái món ăn thất bại');
     }
-  };
+  }, [token]);
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = useCallback(async (id: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa món ăn này không?')) {
       try {
         await deleteMenu(token, id);
-        setMenuItems(menuItems.filter(item => item.id !== id));
+        setMenuItems((prev) => prev.filter(item => item.id !== id));
       } catch (err: any) {
         setError(err.message || 'Xóa món ăn thất bại');
       }
     }
-  };
+  }, [token]);
 
-  const handleEdit = async (id: string) => {
+  const handleEdit = useCallback(async (id: string) => {
     try {
       const menu = await getMenu(token, id);
       setEditingMenu(menu);
     } catch (err: any) {
       setError(err.message || 'Không tìm thấy món để chỉnh sửa');
     }
-  };
+  }, [token]);
 
-  const handleUpdateSuccess = (updatedMenu: MenuData) => {
-    setMenuItems(menuItems.map(item => 
+  const handleUpdateSuccess = useCallback((updatedMenu: MenuData) => {
+    setMenuItems((prev) => prev.map(item => 
       item.id === updatedMenu.id ? updatedMenu : item
     ));
     setEditingMenu(null);
-  };
+  }, []);
 
-  const handleCreateSuccess = (newMenu: MenuData) => {
-    setMenuItems([...menuItems, newMenu]);
+  const handleCreateSuccess = useCallback((newMenu: MenuData) => {
+    setMenuItems((prev) => [...prev, newMenu]);
     setShowCreateModal(false);
-  };
+  }, []);
 
-  const getCategoryName = (categoryId: string) => {
+  const getCategoryName = useCallback((categoryId: string) => {
     const category = categories.find(cat => cat.id === categoryId);
     return category ? category.name : 'Không có danh mục';
-  };
+  }, [categories]);
 
-  if (loading) return (
+  if (loading && menuItems.length === 0) return (
     <div className="flex items-center justify-center h-screen bg-gray-50">
       <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-600"></div>
     </div>
@@ -122,29 +151,134 @@ const AdminMenuPage: React.FC = () => {
           </button>
         </div>
 
+        <div className="bg-white shadow-lg rounded-2xl p-6 mx-auto mb-8 border border-gray-100">
+          <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2">
+            <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            Lọc và Tìm Kiếm 
+          </h2>
+          {error && <p className="text-red-500 mb-4 bg-red-50 p-3 rounded-lg flex items-center gap-2">
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
+            </svg>
+            {error}
+          </p>}
+          <div className="flex flex-col lg:flex-row lg:items-end gap-4 flex-wrap">
+            <div className="flex-1 min-w-[200px]">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm (Tên/Mô tả)</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  name="search"
+                  value={filters.search}
+                  onChange={handleInputChange}
+                  placeholder="Nhập tên hoặc mô tả món ăn..."
+                  className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 transition-all duration-200"
+                />
+                <svg className="w-5 h-5 text-gray-400 absolute left-3 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
+            <div className="flex-1 min-w-[200px]">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Danh mục</label>
+              <div className="relative">
+                <select
+                  name="category_id"
+                  value={filters.category_id}
+                  onChange={handleInputChange}
+                  className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 appearance-none transition-all duration-200"
+                >
+                  <option value="">Tất cả danh mục</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+                <svg className="w-5 h-5 text-gray-400 absolute right-3 top-3.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+            <div className="flex-1 min-w-[200px]">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Khoảng giá</label>
+              <div className="relative">
+                <select
+                  name="price_range"
+                  value={filters.price_range}
+                  onChange={handleInputChange}
+                  className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 appearance-none transition-all duration-200"
+                >
+                  <option value="">Tất cả giá</option>
+                  <option value="0-50000">0 - 50,000đ</option>
+                  <option value="50000-100000">50,000đ - 100,000đ</option>
+                  <option value="100000-200000">100,000đ - 200,000đ</option>
+                  <option value="200000-500000">200,000đ - 500,000đ</option>
+                  <option value="500000-1000000">500,000đ - 1,000,000đ</option>
+                  <option value="1000000-9999999">Trên 1,000,000đ</option>
+                </select>
+                <svg className="w-5 h-5 text-gray-400 absolute right-3 top-3.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+            <div className="flex-1 min-w-[200px]">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
+              <div className="relative">
+                <select
+                  name="status"
+                  value={filters.status}
+                  onChange={handleInputChange}
+                  className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 appearance-none transition-all duration-200"
+                >
+                  <option value="">Tất cả trạng thái</option>
+                  <option value="active">Kích Hoạt</option>
+                  <option value="inactive">Không Kích Hoạt</option>
+                </select>
+                <svg className="w-5 h-5 text-gray-400 absolute right-3 top-3.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+            <div className="flex-1 min-w-[200px]">
+              <button
+                type="submit"
+                disabled={loading}
+                onClick={handleFilterSubmit}
+                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-3 rounded-xl hover:from-indigo-700 hover:to-purple-700 disabled:bg-gray-400 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-[1.02] font-semibold flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                {loading ? 'Đang tải...' : 'Tìm Kiếm & Lọc'}
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div className="bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-100">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
                   Món Ăn
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
                   Mô Tả
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
                   Giá
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
                   Danh Mục
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
                   Tồn Kho
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
                   Trạng Thái
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
                   Hành Động
                 </th>
               </tr>
@@ -166,6 +300,7 @@ const AdminMenuPage: React.FC = () => {
                             src={item.image}
                             alt={item.name}
                             className="h-14 w-14 rounded-lg object-cover border border-gray-200 shadow-sm"
+                            loading="lazy"
                           />
                         )}
                         <div className="text-base font-medium text-gray-900">
@@ -200,6 +335,7 @@ const AdminMenuPage: React.FC = () => {
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-in-out ${
                             item.status === 'active' ? 'bg-green-500' : 'bg-gray-300'
                           }`}
+                          aria-pressed={item.status === 'active'}
                         >
                           <span
                             className={`inline-block h-4 w-4 rounded-full bg-white transform transition-transform duration-200 ease-in-out ${
