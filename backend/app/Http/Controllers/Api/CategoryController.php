@@ -116,4 +116,70 @@ class CategoryController extends Controller
         $categories = Category::all()->shuffle()->take(5)->values();
         return response()->json($categories);
     }
+
+    /**
+     * Lấy danh sách các danh mục cha (không có parent_id)
+     */
+    public function getParentCategories()
+    {
+        $parentCategories = Category::whereNull('parent_id')->get();
+        return response()->json($parentCategories);
+    }
+
+    /**
+     * Lấy danh sách các danh mục con theo danh mục cha
+     */
+    public function getChildCategories($parentId)
+    {
+        try {
+            $childCategories = Category::where('parent_id', $parentId)->get();
+            return response()->json($childCategories);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Parent category not found'], 404);
+        }
+    }
+
+    /**
+     * Tìm kiếm và lọc danh mục
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function search(Request $request)
+    {
+        $query = Category::query();
+
+        // Tìm kiếm theo tên
+        if ($request->has('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%');
+        }
+
+        // Lọc theo trạng thái
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Lọc theo danh mục cha
+        if ($request->has('parent_id')) {
+            $query->where('parent_id', $request->parent_id);
+        }
+
+        // Sắp xếp
+        $sortField = $request->input('sort_by', 'created_at');
+        $sortDirection = $request->input('sort_direction', 'desc');
+        $query->orderBy($sortField, $sortDirection);
+
+        // Phân trang
+        $perPage = $request->input('per_page', 10);
+        $categories = $query->paginate($perPage);
+
+        return response()->json([
+            'data' => $categories->items(),
+            'pagination' => [
+                'total' => $categories->total(),
+                'per_page' => $categories->perPage(),
+                'current_page' => $categories->currentPage(),
+                'last_page' => $categories->lastPage(),
+            ]
+        ]);
+    }
 }

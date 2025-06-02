@@ -11,7 +11,7 @@ class UserController extends Controller
 {
      public function register(Request $request)
     {
-        // ✅ Validate dữ liệu đầu vào
+        
         $validator = Validator::make($request->all(), [
             'name'                  => 'required|string|max:255',
             'email'                 => 'required|string|email|max:255|unique:users',
