@@ -9,7 +9,7 @@ import SearchBarVoucher from "../components/SearchBarVoucher";
 import FilterDropdown from "../components/FilterDropdown";
 import SelectedCategoryTag from "../components/SelectedCategoryTag";
 import VoucherGrid from "../components/VoucherGrid";
-import type { VoucherData } from "../components/VoucherGrid"; // import type-only
+import type { VoucherData } from "../components/VoucherGrid";
 import EmptyState from "../components/EmptyState";
 
 const Voucher: React.FC = () => {
@@ -21,24 +21,68 @@ const Voucher: React.FC = () => {
   const [vouchers, setVouchers] = useState<VoucherData[]>([
     {
       id: 1,
-      imageUrl: "/voucher1.png",
-      title: "Giảm 20%",
-      description: "Giảm 20% cho đơn hàng từ 200k",
-      value: "20%",
+      imageUrl: "/food-voucher1.png",
+      title: "Giảm 30K",
+      description: "Giảm 30K cho đơn đồ ăn từ 150K",
+      value: "30K",
       expiryDate: "2025-06-30",
-      minOrder: 200000,
-      category: "Thời trang",
+      minOrder: 150000,
+      category: "Ẩm thực",
       isSaved: false,
     },
     {
       id: 2,
-      imageUrl: "/voucher2.png",
-      title: "Freeship",
-      description: "Miễn phí vận chuyển đơn từ 50k",
-      value: "Freeship",
+      imageUrl: "/food-voucher2.png",
+      title: "Mua 1 tặng 1",
+      description: "Mua 1 ly trà sữa tặng 1 ly cùng loại",
+      value: "Buy 1 Get 1",
       expiryDate: "2025-07-15",
-      minOrder: 50000,
-      category: "Giao hàng",
+      minOrder: 0,
+      category: "Trà sữa",
+      isSaved: false,
+    },
+    {
+      id: 3,
+      imageUrl: "/food-voucher3.png",
+      title: "Giảm 50K",
+      description: "Giảm 50K cho đơn đồ ăn từ 300K",
+      value: "50K",
+      expiryDate: "2025-07-20",
+      minOrder: 300000,
+      category: "Ẩm thực",
+      isSaved: false,
+    },
+    {
+      id: 4,
+      imageUrl: "/coffee-voucher.png",
+      title: "Freeship cà phê",
+      description: "Miễn phí vận chuyển đơn cà phê từ 100k",
+      value: "Freeship",
+      expiryDate: "2025-07-10",
+      minOrder: 100000,
+      category: "Cà phê",
+      isSaved: false,
+    },
+    {
+      id: 5,
+      imageUrl: "/fastfood-voucher.png",
+      title: "Combo tiết kiệm",
+      description: "Giảm 25% cho các combo đồ ăn nhanh",
+      value: "25%",
+      expiryDate: "2025-07-25",
+      minOrder: 0,
+      category: "Đồ ăn nhanh",
+      isSaved: false,
+    },
+    {
+      id: 6,
+      imageUrl: "/drink-voucher.png",
+      title: "Nước uống miễn phí",
+      description: "Tặng 1 ly nước ép khi mua bất kỳ món chính",
+      value: "Free drink",
+      expiryDate: "2025-08-05",
+      minOrder: 120000,
+      category: "Nước uống",
       isSaved: false,
     },
   ]);
@@ -77,7 +121,6 @@ const Voucher: React.FC = () => {
   return (
     <Background>
       <div className="flex min-h-screen">
-        {/* Sidebar ẩn trên mobile, rộng 256px trên md+ */}
         <div className="hidden md:block w-64">
           <Sidebar />
         </div>
@@ -87,7 +130,6 @@ const Voucher: React.FC = () => {
             <Header />
             <Tabs activeTab={activeTab} onChange={setActiveTab} />
 
-            {/* Thanh tìm kiếm và filter */}
             <div className="mb-4 flex flex-wrap gap-2 items-center">
               <div className="flex-1 min-w-[250px]">
                 <SearchBarVoucher
@@ -111,7 +153,6 @@ const Voucher: React.FC = () => {
               </div>
             </div>
 
-            {/* Tag category */}
             <div className="mb-6">
               <SelectedCategoryTag
                 category={selectedCategory}
@@ -119,7 +160,6 @@ const Voucher: React.FC = () => {
               />
             </div>
 
-            {/* Voucher Grid hoặc Empty State */}
             {filteredVouchers.length > 0 ? (
               <VoucherGrid
                 vouchers={filteredVouchers}
