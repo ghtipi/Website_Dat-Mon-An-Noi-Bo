@@ -10,6 +10,7 @@ import UserSidebar from './components/Layout/Sidebar';
 import AdminSidebar from './components/Layout/SidebarAdmin';
 import ManagerSidebar from './components/ManagerSidebar';
 import AdminCategoryPage from './Pages/Admin/Category/AdminCategoryPage';
+import AdminMenuPage from './Pages/Admin/Menu/AdminMenuPage';
 
 function App() {
   return (
@@ -31,6 +32,8 @@ function App() {
                   <Routes>
                     <Route path="/" element={<AdminDashboard />} />
                     <Route path="categories" element={<AdminCategoryPage />} />
+                    <Route path="products" element={<AdminMenuPage />} />
+
                     {/* các route quản lý khác */}
                   </Routes>
                 </div>

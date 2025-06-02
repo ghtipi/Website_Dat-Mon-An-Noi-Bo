@@ -1,55 +1,71 @@
 import { useState, useRef, useEffect } from 'react';
-import { updateCategory, CategoryData } from '../../../services/admin/Category';
+import { updateMenu, MenuData } from '../../../services/admin/Menu';
 import { uploadImage } from '../../../services/admin/ImageService';
+import { getCategories, CategoryData } from '../../../services/admin/Category';
 
-type EditCategoryProps = {
-  category: CategoryData;
+type EditMenuProps = {
+  menu: MenuData;
   token: string;
-  onUpdate: (updatedCategory: CategoryData) => void;
+  onUpdate: (updatedMenu: MenuData) => void;
   onCancel: () => void;
-  refreshCategories: () => Promise<void>;
+  refreshMenus: () => Promise<void>;
 };
 
-const EditCategory: React.FC<EditCategoryProps> = ({
-  category,
+const EditMenu: React.FC<EditMenuProps> = ({
+  menu,
   token,
   onUpdate,
   onCancel,
-  refreshCategories,
+  refreshMenus,
 }) => {
   const [formData, setFormData] = useState({
-    id: category.id,
-    name: category.name || '',
-    description: category.description || '',
-    slug: category.slug || '',
-    image: category.image || '',
-    status: category.status === 'active' ? 'active' : 'inactive',
+    id: menu.id,
+    name: menu.name || '',
+    description: menu.description || '',
+    price: menu.price || 0,
+    category_id: menu.category_id || '',
+    image: menu.image || '',
+    status: menu.status === 'active' ? 'active' : 'inactive',
+    stock: menu.stock || '',
   });
+  const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(category.image || '');
+  const [imagePreview, setImagePreview] = useState<string>(menu.image || '');
 
   useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await getCategories(token);
+        setCategories(data);
+      } catch (err: any) {
+        setError('Lấy danh sách danh mục thất bại');
+      }
+    };
+    fetchCategories();
+
     setFormData({
-      id: category.id,
-      name: category.name || '',
-      description: category.description || '',
-      slug: category.slug || '',
-      image: category.image || '',
-      status: category.status === 'active' ? 'active' : 'inactive',
+      id: menu.id,
+      name: menu.name || '',
+      description: menu.description || '',
+      price: menu.price || 0,
+      category_id: menu.category_id || '',
+      image: menu.image || '',
+      status: menu.status === 'active' ? 'active' : 'inactive',
+      stock: menu.stock || '',
     });
-    setImagePreview(category.image || '');
-  }, [category]);
+    setImagePreview(menu.image || '');
+  }, [menu, token]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'parentId' ? value : value,
+      [name]: name === 'price' ? Number(value) : name === 'stock' ? (value ? Number(value) : '') : value,
     }));
   };
 
@@ -85,7 +101,7 @@ const EditCategory: React.FC<EditCategoryProps> = ({
       ...prev,
       image: ''
     }));
-    setImagePreview(null);
+    setImagePreview('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -94,15 +110,16 @@ const EditCategory: React.FC<EditCategoryProps> = ({
     setError(null);
 
     const submitData = {
-      ...formData
+      ...formData,
+      stock: formData.stock !== '' ? Number(formData.stock) : undefined,
     };
 
     try {
-      const updatedCategory = await updateCategory(token, category.id, submitData);
-      onUpdate(updatedCategory);
-      await refreshCategories();
+      const updatedMenu = await updateMenu(token, menu.id, submitData);
+      onUpdate(updatedMenu);
+      await refreshMenus();
     } catch (err: any) {
-      setError(err.message || 'Cập nhật danh mục thất bại');
+      setError(err.message || 'Cập nhật món ăn thất bại');
       console.error('Lỗi cập nhật:', err);
     } finally {
       setLoading(false);
@@ -113,7 +130,7 @@ const EditCategory: React.FC<EditCategoryProps> = ({
     <div className="fixed inset-0 bg-gradient-to-br from-gray-900/40 to-indigo-900/40 flex items-center justify-center z-50 p-4 md:p-6">
       <div className="bg-white rounded-3xl shadow-xl max-w-2xl w-full max-h-[95vh] overflow-y-auto p-6 md:p-8 transform transition-all duration-300">
         <h2 className="text-3xl md:text-4xl font-extrabold text-indigo-900 mb-6 tracking-tight text-center">
-          Chỉnh Sửa Danh Mục
+          Chỉnh Sửa Món Ăn
         </h2>
 
         {error && (
@@ -126,10 +143,10 @@ const EditCategory: React.FC<EditCategoryProps> = ({
         )}
 
         <div className="space-y-6">
-          {/* Tên danh mục */}
+          {/* Tên món ăn */}
           <div className="space-y-2">
             <label htmlFor="name" className="block text-sm font-medium text-gray-800">
-              Tên Danh Mục <span className="text-red-500">*</span>
+              Tên Món Ăn <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -138,7 +155,7 @@ const EditCategory: React.FC<EditCategoryProps> = ({
               value={formData.name}
               onChange={handleChange}
               className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white shadow-sm transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
-              placeholder="Nhập tên danh mục"
+              placeholder="Nhập tên món ăn"
               required
               disabled={loading || imageUploading}
             />
@@ -156,24 +173,67 @@ const EditCategory: React.FC<EditCategoryProps> = ({
               onChange={handleChange}
               rows={4}
               className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white shadow-sm transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed resize-y"
-              placeholder="Nhập mô tả danh mục"
+              placeholder="Nhập mô tả món ăn"
               disabled={loading || imageUploading}
             />
           </div>
 
-          {/* Slug */}
+          {/* Giá */}
           <div className="space-y-2">
-            <label htmlFor="slug" className="block text-sm font-medium text-gray-800">
-              Đường Dẫn Tĩnh (Slug)
+            <label htmlFor="price" className="block text-sm font-medium text-gray-800">
+              Giá (VNĐ) <span className="text-red-500">*</span>
             </label>
             <input
-              type="text"
-              id="slug"
-              name="slug"
-              value={formData.slug}
+              type="number"
+              id="price"
+              name="price"
+              value={formData.price}
               onChange={handleChange}
               className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white shadow-sm transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
-              placeholder="Nhập slug (ví dụ: mon-khai-vi)"
+              placeholder="Nhập giá món ăn"
+              required
+              min="0"
+              disabled={loading || imageUploading}
+            />
+          </div>
+
+          {/* Danh mục */}
+          <div className="space-y-2">
+            <label htmlFor="category_id" className="block text-sm font-medium text-gray-800">
+              Danh Mục <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="category_id"
+              name="category_id"
+              value={formData.category_id}
+              onChange={handleChange}
+              className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white shadow-sm transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              required
+              disabled={loading || imageUploading}
+            >
+              <option value="">Chọn danh mục</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Tồn kho */}
+          <div className="space-y-2">
+            <label htmlFor="stock" className="block text-sm font-medium text-gray-800">
+              Tồn Kho
+            </label>
+            <input
+              type="number"
+              id="stock"
+              name="stock"
+              value={formData.stock}
+              onChange={handleChange}
+              className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white shadow-sm transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              placeholder="Nhập số lượng tồn kho (để trống nếu không giới hạn)"
+              min="0"
               disabled={loading || imageUploading}
             />
           </div>
@@ -204,17 +264,17 @@ const EditCategory: React.FC<EditCategoryProps> = ({
             </div>
           </div>
 
-          {/* Ảnh danh mục */}
+          {/* Ảnh món ăn */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-800">
-              Ảnh Danh Mục
+              Ảnh Món Ăn
             </label>
             <div className="flex flex-col md:flex-row md:items-center gap-4">
               {imagePreview ? (
                 <div className="relative w-48 h-48 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-200">
                   <img
                     src={imagePreview}
-                    alt="Ảnh danh mục"
+                    alt="Ảnh món ăn"
                     className="w-full h-full object-cover"
                   />
                   <button
@@ -279,14 +339,14 @@ const EditCategory: React.FC<EditCategoryProps> = ({
                   </svg>
                   <span>Đang Cập Nhật...</span>
                 </div>
-              ) : 'Cập Nhật Danh Mục'}
+              ) : 'Cập Nhật Món Ăn'}
             </button>
             <button
               type="button"
               onClick={onCancel}
               className="flex-1 px-6 py-3 border border-gray-300 rounded-xl text-gray-700 bg-white hover:bg-gray-50 shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={loading || imageUploading}
-            > 
+            >
               Hủy
             </button>
           </div>
@@ -296,4 +356,4 @@ const EditCategory: React.FC<EditCategoryProps> = ({
   );
 };
 
-export default EditCategory;
+export default EditMenu;

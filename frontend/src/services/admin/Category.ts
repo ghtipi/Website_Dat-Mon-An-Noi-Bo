@@ -13,7 +13,6 @@ export interface CategoryData {
   id: string;
   name: string;
   description?: string;
-  parentId?: number | null;
   slug?: string;
   image?: string;
   status?: string;
@@ -21,7 +20,7 @@ export interface CategoryData {
 
 export const getCategories = async (token: string): Promise<CategoryData[]> => {
   try {
-    const response = await axios.get(`${API_BASE}/categories`, authHeaders(token));
+    const response = await axios.get(`${API_BASE}/categoriesadmin`, authHeaders(token));
     if (!response.data) {
       throw new Error('No data returned from server');
     }

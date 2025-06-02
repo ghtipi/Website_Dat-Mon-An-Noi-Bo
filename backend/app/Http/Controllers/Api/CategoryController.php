@@ -20,9 +20,18 @@ class CategoryController extends Controller
     /**
      * Hiển thị danh sách tất cả danh mục
      */
-    public function index()
+    public function indexAdmin()
     {
         $categories = Category::all();
+        return response()->json($categories);
+    }
+    public function index()
+    {
+        $categories = Category::raw(function ($collection) {
+        return $collection->aggregate([
+            ['$match' => ['status' => 'active']],
+        ]);
+    });
         return response()->json($categories);
     }
 

@@ -6,24 +6,50 @@ use App\Models\MenuItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
+// use MongoDB\BSON\ObjectId; // Commented out because ObjectId is not defined
 
 class MenuController extends Controller
 {
+    // Dành cho người dùng - chỉ hiển thị các món có status 'active'
     public function index()
     {
-        $items = MenuItem::where('status', true)->get();
+        $items = MenuItem::where('status', 'active')->get();
         return response()->json($items);
     }
 
-    public function store(Request $request)
+    // Dành cho admin - lấy toàn bộ menu không lọc theo status
+    public function adminIndex()
+    {
+        $items = MenuItem::all();
+        return response()->json($items);
+    }
+
+    // Người dùng xem chi tiết món (chỉ xem được món active)
+    public function show($id)
+    {
+        $item = MenuItem::where('_id', $id)
+                        ->where('status', 'active')
+                        ->firstOrFail();
+        return response()->json($item);
+    }
+
+    // Admin xem chi tiết bất kỳ món nào
+    public function adminShow($id)
+    {
+        $item = MenuItem::where('_id', $id)->firstOrFail();
+        return response()->json($item);
+    }
+
+    // Admin thêm món mới
+    public function adminStore(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'description' => 'string|nullable',
             'price' => 'required|numeric|min:0',
-            'category_id' => 'required|exists:categories,_id',
+            'category_id' => 'required|string',
             'image' => 'string|nullable',
-            'status' => 'boolean',
+            'status' => 'nullable|string|in:active,inactive',
             'stock' => 'integer|min:0',
         ]);
 
@@ -35,22 +61,18 @@ class MenuController extends Controller
         return response()->json($item, 201);
     }
 
-    public function show($id)
+    // Admin cập nhật món ăn
+    public function adminUpdate(Request $request, $id)
     {
-        $item = MenuItem::findOrFail($id);
-        return response()->json($item);
-    }
+        $item = MenuItem::where('_id',$id)->firstOrFail();
 
-    public function update(Request $request, $id)
-    {
-        $item = MenuItem::findOrFail($id);
         $validator = Validator::make($request->all(), [
             'name' => 'string|max:255',
             'description' => 'string|nullable',
             'price' => 'numeric|min:0',
-            'category_id' => 'exists:categories,_id',
+            'category_id' => 'string',
             'image' => 'string|nullable',
-            'status' => 'boolean',
+            'status' => 'nullable|string|in:active,inactive',
             'stock' => 'integer|min:0',
         ]);
 
@@ -62,9 +84,10 @@ class MenuController extends Controller
         return response()->json($item);
     }
 
-    public function destroy($id)
+    // Admin xoá món
+    public function adminDestroy($id)
     {
-        $item = MenuItem::findOrFail($id);
+        $item = MenuItem::where('_id', $id)->firstOrFail();
         $item->delete();
         return response()->json(null, 204);
     }
