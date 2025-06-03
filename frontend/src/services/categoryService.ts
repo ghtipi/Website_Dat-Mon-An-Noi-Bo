@@ -1,5 +1,7 @@
 import apiCall from '../Api/axios';
 
+export const API_BASE = 'http://localhost:8000/api';
+
 export interface Category {
   id: string;
   name: string;

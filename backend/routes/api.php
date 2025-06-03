@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Route;
 
     Route::get('/categories/random', [CategoryController::class, 'randomCategories']);
     Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/categories/{id}', [CategoryController::class, 'show']);
     
 
     Route::get('/menu', [MenuController::class, 'index']);
@@ -35,13 +36,14 @@ Route::group(['prefix' => 'auth'], function () {
 
 Route::middleware('auth:api')->group(function () {
     
-    Route::post('/categories', [CategoryController::class, 'store'])->middleware('role:admin');
-    Route::get('/categoriesadmin', [CategoryController::class, 'indexAdmin']);
-    Route::get('/categories/{id}', [CategoryController::class, 'show']);
-    Route::put('/categories/{id}', [CategoryController::class, 'update'])->middleware('role:admin');
-    Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->middleware('role:admin');
-    Route::get('/categories/search', [CategoryController::class, 'search'])->middleware('role:admin');
-
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/categoriesadmin', [CategoryController::class, 'indexAdmin']);
+        Route::get('/categoriesadmin/{id}', [CategoryController::class, 'adminShow']);
+        Route::post('/categories', [CategoryController::class, 'store']);
+        Route::put('/categories/{id}', [CategoryController::class, 'update']);
+        Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
+    });
+// Menu Items  
     // Public (user)
     Route::get('/menu-items', [MenuController::class, 'index']);
     Route::get('/menu-items/{id}', [MenuController::class, 'show']);

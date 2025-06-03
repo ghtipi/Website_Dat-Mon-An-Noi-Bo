@@ -49,7 +49,7 @@ class MenuController extends Controller
         if ($request->has('category_id')) {
             $query->where('category_id', $request->input('category_id'));
         }
-
+  
         // Lọc theo giá
         if ($request->has('price_min') && is_numeric($request->input('price_min'))) {
             $query->where('price', '>=', (float) $request->input('price_min'));
