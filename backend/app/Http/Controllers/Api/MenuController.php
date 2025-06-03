@@ -9,74 +9,69 @@ use App\Http\Controllers\Controller;
 
 class MenuController extends Controller
 {
-    // Dành cho người dùng - chỉ hiển thị các món có status 'active'
+    // Người dùng - chỉ xem món active
     public function index(Request $request)
     {
         $query = MenuItem::where('status', 'active');
-
-        // Lọc theo danh mục
-        if ($request->has('category_id')) {
-            $query->where('category_id', $request->input('category_id'));
-        }
-
-        // Lọc theo giá
-        if ($request->has('price_min') && is_numeric($request->input('price_min'))) {
-            $query->where('price', '>=', (float) $request->input('price_min'));
-        }
-        if ($request->has('price_max') && is_numeric($request->input('price_max'))) {
-            $query->where('price', '<=', (float) $request->input('price_max'));
-        }
-
-        // Tìm kiếm theo tên hoặc mô tả
-        if ($request->has('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
-            });
-        }
-
+        $this->applyFilters($query, $request);
         $items = $query->get();
         return response()->json($items);
     }
 
-    // Dành cho admin - lấy toàn bộ menu với khả năng lọc và tìm kiếm
+    // Admin - xem tất cả món
     public function adminIndex(Request $request)
     {
         $query = MenuItem::query();
+        $this->applyFilters($query, $request, true);
+        return response()->json($query->get());
+    }
 
-        // Lọc theo danh mục
-        if ($request->has('category_id')) {
-            $query->where('category_id', $request->input('category_id'));
+    // Lọc chung
+    protected function applyFilters($query, Request $request, $isAdmin = false)
+    {
+        // Lọc theo danh mục (nhiều danh mục)
+        if ($request->filled('category_ids')) {
+            $categoryIds = $request->input('category_ids');
+
+            if (is_string($categoryIds)) {
+                $categoryIds = explode(',', $categoryIds);
+            }
+
+            $categoryIds = array_map('trim', $categoryIds);
+
+            $query->where(function ($q) use ($categoryIds) {
+                foreach ($categoryIds as $id) {
+                    // Tìm kiếm trong chuỗi JSON chứa mảng category_ids
+                    $q->orWhere('category_ids', 'like', '%"' . $id . '"%');
+                }
+            });
         }
-  
-        // Lọc theo giá
-        if ($request->has('price_min') && is_numeric($request->input('price_min'))) {
+
+        // Lọc theo khoảng giá
+        if ($request->filled('price_min') && is_numeric($request->input('price_min'))) {
             $query->where('price', '>=', (float) $request->input('price_min'));
         }
-        if ($request->has('price_max') && is_numeric($request->input('price_max'))) {
+
+        if ($request->filled('price_max') && is_numeric($request->input('price_max'))) {
             $query->where('price', '<=', (float) $request->input('price_max'));
         }
 
-        // Lọc theo trạng thái
-        if ($request->has('status')) {
+        // Lọc theo trạng thái (chỉ admin)
+        if ($isAdmin && $request->filled('status')) {
             $query->where('status', $request->input('status'));
         }
 
         // Tìm kiếm theo tên hoặc mô tả
-        if ($request->has('search')) {
+        if ($request->filled('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%");
             });
         }
-
-        $items = $query->get();
-        return response()->json($items);
     }
 
-    // Người dùng xem chi tiết món (chỉ xem được món active)
+    // Người dùng xem chi tiết món active
     public function show($id)
     {
         $item = MenuItem::where('_id', $id)
@@ -99,7 +94,8 @@ class MenuController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'string|nullable',
             'price' => 'required|numeric|min:0',
-            'category_id' => 'required|string',
+            'category_ids' => 'required|array',
+            'category_ids.*' => 'string',
             'image' => 'string|nullable',
             'status' => 'nullable|string|in:active,inactive',
             'stock' => 'integer|min:0',
@@ -113,7 +109,7 @@ class MenuController extends Controller
         return response()->json($item, 201);
     }
 
-    // Admin cập nhật món ăn
+    // Admin cập nhật món
     public function adminUpdate(Request $request, $id)
     {
         $item = MenuItem::where('_id', $id)->firstOrFail();
@@ -122,7 +118,8 @@ class MenuController extends Controller
             'name' => 'string|max:255',
             'description' => 'string|nullable',
             'price' => 'numeric|min:0',
-            'category_id' => 'string',
+            'category_ids' => 'array|nullable',
+            'category_ids.*' => 'string',
             'image' => 'string|nullable',
             'status' => 'nullable|string|in:active,inactive',
             'stock' => 'integer|min:0',

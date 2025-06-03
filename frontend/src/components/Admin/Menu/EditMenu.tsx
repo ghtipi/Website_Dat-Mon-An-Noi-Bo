@@ -23,10 +23,11 @@ const EditMenu: React.FC<EditMenuProps> = ({
     name: menu.name || '',
     description: menu.description || '',
     price: menu.price || 0,
-    category_id: menu.category_id || '',
+    category_ids: menu.category_ids || [], // Initialize with category_ids from MenuData
+    slug: menu.slug || '',
     image: menu.image || '',
     status: menu.status === 'active' ? 'active' : 'inactive',
-    stock: menu.stock || '',
+    stock: menu.stock !== undefined ? menu.stock : '',
   });
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(false);
@@ -51,10 +52,11 @@ const EditMenu: React.FC<EditMenuProps> = ({
       name: menu.name || '',
       description: menu.description || '',
       price: menu.price || 0,
-      category_id: menu.category_id || '',
+      category_ids: menu.category_ids || [], // Use category_ids from MenuData
+      slug: menu.slug || '',
       image: menu.image || '',
       status: menu.status === 'active' ? 'active' : 'inactive',
-      stock: menu.stock || '',
+      stock: menu.stock !== undefined ? menu.stock : '',
     });
     setImagePreview(menu.image || '');
   }, [menu, token]);
@@ -66,6 +68,14 @@ const EditMenu: React.FC<EditMenuProps> = ({
     setFormData((prev) => ({
       ...prev,
       [name]: name === 'price' ? Number(value) : name === 'stock' ? (value ? Number(value) : '') : value,
+    }));
+  };
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+    setFormData((prev) => ({
+      ...prev,
+      category_ids: selectedOptions,
     }));
   };
 
@@ -108,6 +118,22 @@ const EditMenu: React.FC<EditMenuProps> = ({
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    if (!formData.name.trim()) {
+      setError('Tên món ăn là bắt buộc');
+      setLoading(false);
+      return;
+    }
+    if (formData.price <= 0) {
+      setError('Giá phải lớn hơn 0');
+      setLoading(false);
+      return;
+    }
+    if (formData.category_ids.length === 0) {
+      setError('Vui lòng chọn ít nhất một danh mục');
+      setLoading(false);
+      return;
+    }
 
     const submitData = {
       ...formData,
@@ -199,25 +225,25 @@ const EditMenu: React.FC<EditMenuProps> = ({
 
           {/* Danh mục */}
           <div className="space-y-2">
-            <label htmlFor="category_id" className="block text-sm font-medium text-gray-800">
+            <label htmlFor="category_ids" className="block text-sm font-medium text-gray-800">
               Danh Mục <span className="text-red-500">*</span>
             </label>
             <select
-              id="category_id"
-              name="category_id"
-              value={formData.category_id}
-              onChange={handleChange}
+              id="category_ids"
+              name="category_ids"
+              value={formData.category_ids}
+              onChange={handleCategoryChange}
+              multiple
               className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white shadow-sm transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
-              required
               disabled={loading || imageUploading}
             >
-              <option value="">Chọn danh mục</option>
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
                   {category.name}
                 </option>
               ))}
             </select>
+            <p className="text-sm text-gray-500">Giữ Ctrl (hoặc Cmd) để chọn nhiều danh mục</p>
           </div>
 
           {/* Tồn kho */}

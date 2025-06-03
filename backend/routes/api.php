@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\Route;
     Route::get('/ratings', [RatingController::class, 'index']);
 
 Route::group(['prefix' => 'auth'], function () {
-    Route::post('/register', [AuthController::class, 'register']);
+    
     Route::post('/login', [AuthController::class, 'login']);
     Route::middleware('auth:api')->group(function () {
         Route::get('/me', [AuthController::class, 'me']);
@@ -35,7 +35,8 @@ Route::group(['prefix' => 'auth'], function () {
 });
 
 Route::middleware('auth:api')->group(function () {
-    
+// Categories
+    //Admin-Manager
     Route::middleware('role:admin')->group(function () {
         Route::get('/categoriesadmin', [CategoryController::class, 'indexAdmin']);
         Route::get('/categoriesadmin/{id}', [CategoryController::class, 'adminShow']);
@@ -47,13 +48,18 @@ Route::middleware('auth:api')->group(function () {
     // Public (user)
     Route::get('/menu-items', [MenuController::class, 'index']);
     Route::get('/menu-items/{id}', [MenuController::class, 'show']);
-    // Admin
+    // Admin-Manager
     Route::prefix('admin')->group(function () {
         Route::get('/menu-items', [MenuController::class, 'adminIndex']);
         Route::get('/menu-items/{id}', [MenuController::class, 'adminShow']);
         Route::post('/menu-items', [MenuController::class, 'adminStore']);
         Route::put('/menu-items/{id}', [MenuController::class, 'adminUpdate']);
         Route::delete('/menu-items/{id}', [MenuController::class, 'adminDestroy']);
+    });
+// users
+    // Admin
+    Route::middleware('role:admin')->group(function () {
+        Route::post('/register', [AuthController::class, 'register']);
     });
 
     Route::get('/orders', [OrderController::class, 'index']); 

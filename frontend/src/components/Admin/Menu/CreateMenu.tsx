@@ -23,7 +23,7 @@ const CreateMenu: React.FC<CreateMenuProps> = ({
     name: menu.name || '',
     description: menu.description || '',
     price: menu.price || 0,
-    category_id: menu.category_id || '',
+    category_ids: menu.category_ids || [], // Initialize with category_ids array
     image: menu.image || '',
     status: menu.status === 'active' ? 'active' : 'inactive',
     stock: menu.stock !== undefined ? menu.stock : '',
@@ -53,7 +53,7 @@ const CreateMenu: React.FC<CreateMenuProps> = ({
       name: menu.name || '',
       description: menu.description || '',
       price: menu.price || 0,
-      category_id: menu.category_id || '',
+      category_ids: menu.category_ids || [], // Use category_ids directly
       image: menu.image || '',
       status: menu.status === 'active' ? 'active' : 'inactive',
       stock: menu.stock !== undefined ? menu.stock : '',
@@ -75,6 +75,14 @@ const CreateMenu: React.FC<CreateMenuProps> = ({
             ? ''
             : Number(value)
           : value,
+    }));
+  };
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+    setFormData((prev) => ({
+      ...prev,
+      category_ids: selectedOptions,
     }));
   };
 
@@ -121,8 +129,8 @@ const CreateMenu: React.FC<CreateMenuProps> = ({
       setError('Giá phải lớn hơn 0.');
       return;
     }
-    if (!formData.category_id) {
-      setError('Vui lòng chọn danh mục.');
+    if (formData.category_ids.length === 0) {
+      setError('Vui lòng chọn ít nhất một danh mục.');
       return;
     }
 
@@ -131,6 +139,7 @@ const CreateMenu: React.FC<CreateMenuProps> = ({
     try {
       const payload = {
         ...formData,
+        slug: menu.slug || '', 
         stock:
           formData.stock === '' || formData.stock === undefined
             ? undefined
@@ -162,7 +171,7 @@ const CreateMenu: React.FC<CreateMenuProps> = ({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-6">
           <div className="space-y-2">
             <label htmlFor="name" className="block text-sm font-medium text-gray-800">
               Tên Món Ăn <span className="text-red-500">*</span>
@@ -215,25 +224,25 @@ const CreateMenu: React.FC<CreateMenuProps> = ({
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="category_id" className="block text-sm font-medium text-gray-800">
+            <label htmlFor="category_ids" className="block text-sm font-medium text-gray-800">
               Danh Mục <span className="text-red-500">*</span>
             </label>
             <select
-              id="category_id"
-              name="category_id"
-              value={formData.category_id}
-              onChange={handleChange}
+              id="category_ids"
+              name="category_ids"
+              value={formData.category_ids}
+              onChange={handleCategoryChange}
+              multiple
               className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white shadow-sm transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
-              required
               disabled={loading || imageUploading}
             >
-              <option value="">Chọn danh mục</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
                 </option>
               ))}
             </select>
+            <p className="text-sm text-gray-500">Giữ Ctrl (hoặc Cmd) để chọn nhiều danh mục</p>
           </div>
 
           <div className="space-y-2">
@@ -313,6 +322,7 @@ const CreateMenu: React.FC<CreateMenuProps> = ({
                   ? 'bg-green-500 text-white hover:bg-green-600'
                   : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
               }`}
+              disabled={loading || imageUploading}
             >
               {formData.status === 'active' ? 'Đang hoạt động' : 'Đã tắt'}
             </button>
@@ -328,7 +338,8 @@ const CreateMenu: React.FC<CreateMenuProps> = ({
               Hủy
             </button>
             <button
-              type="submit"
+              type="button"
+              onClick={handleSubmit}
               disabled={loading || imageUploading}
               className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -343,7 +354,7 @@ const CreateMenu: React.FC<CreateMenuProps> = ({
               ) : menu.id ? 'Cập Nhật' : 'Tạo Mới'}
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

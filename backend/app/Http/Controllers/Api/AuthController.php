@@ -45,7 +45,7 @@ class AuthController extends Controller
 
         if (!$token = JWTAuth::attempt($credentials)) {
             return response()->json(['error' => 'Email hoặc mật khẩu không đúng'], 401);
-        }
+        } 
 
         return response()->json([
             'token' => $token,
