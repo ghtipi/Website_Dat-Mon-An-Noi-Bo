@@ -2,12 +2,20 @@
 
 namespace App\Models;
 
+
 use MongoDB\Laravel\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Auth\Authenticatable as AuthenticatableTrait;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+
+
+/**
+ * @method bool save(array $options = [])
+ * @method bool delete()
+ * @mixin \MongoDB\Laravel\Eloquent\Model
+ */
 
 class User extends Model implements AuthenticatableContract, JWTSubject
 {

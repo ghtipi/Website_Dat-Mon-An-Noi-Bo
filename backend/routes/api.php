@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\PromotionController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\ImageController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 //các api không cần xác thực
@@ -38,6 +39,17 @@ Route::middleware('auth:api')->group(function () {
 // Categories
     //Admin-Manager
     Route::middleware('role:admin')->group(function () {
+        // User management routes
+        Route::prefix('admin')->group(function () {
+            Route::get('/users', [UserController::class, 'index']);
+            Route::get('/users/{id}', [UserController::class, 'show']);
+            Route::post('/users', [UserController::class, 'store']);
+            Route::put('/users/{id}', [UserController::class, 'update']);
+            Route::delete('/users/{id}', [UserController::class, 'destroy']);
+            Route::put('/users/{id}/status', [UserController::class, 'updateStatus']);
+            Route::put('/users/{id}/role', [UserController::class, 'updateRole']);
+        });
+
         Route::get('/categoriesadmin', [CategoryController::class, 'indexAdmin']);
         Route::get('/categoriesadmin/{id}', [CategoryController::class, 'adminShow']);
         Route::post('/categories', [CategoryController::class, 'store']);
@@ -58,9 +70,7 @@ Route::middleware('auth:api')->group(function () {
     });
 // users
     // Admin
-    Route::middleware('role:admin')->group(function () {
-        Route::post('/register', [AuthController::class, 'register']);
-    });
+
 
     Route::get('/orders', [OrderController::class, 'index']); 
     Route::post('/orders', [OrderController::class, 'store']);

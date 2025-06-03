@@ -40,18 +40,20 @@ class AuthController extends Controller
 
     // Đăng nhập
     public function login(Request $request)
-    {
-        $credentials = $request->only('email', 'password');
+{
+    $credentials = $request->only('email', 'password');
+    $credentials['status'] = 'active';
 
-        if (!$token = JWTAuth::attempt($credentials)) {
-            return response()->json(['error' => 'Email hoặc mật khẩu không đúng'], 401);
-        } 
+    if (!$token = JWTAuth::attempt($credentials)) {
+        return response()->json(['error' => 'Email, mật khẩu không đúng hoặc tài khoản chưa được kích hoạt'], 401);
+    } 
 
-        return response()->json([
-            'token' => $token,
-            'user' => auth()->user()
-        ]);
-    }
+    return response()->json([
+        'token' => $token,
+        'user' => auth()->user()
+    ]);
+}
+
 
     // Đăng xuất
     public function logout()
