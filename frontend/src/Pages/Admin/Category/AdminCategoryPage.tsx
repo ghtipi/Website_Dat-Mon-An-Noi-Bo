@@ -3,6 +3,8 @@ import LayoutAdmin from '../../../components/Layout/LayoutAdmin';
 import { getCategories, deleteCategory, updateCategory, CategoryData } from '../../../services/admin/Category';
 import CreateCategory from '../../../components/Admin/Category/CreateCategory';
 import EditCategory from '../../../components/Admin/Category/EditCategory';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const AdminCategoryPage = () => {
     const [categories, setCategories] = useState<CategoryData[]>([]);
@@ -10,6 +12,8 @@ const AdminCategoryPage = () => {
     const [error, setError] = useState<string | null>(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [editingCategory, setEditingCategory] = useState<CategoryData | null>(null);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [categoryToDelete, setCategoryToDelete] = useState<{id: string, name: string} | null>(null);
 
     const token = localStorage.getItem('token') || '';
  
@@ -30,14 +34,34 @@ const AdminCategoryPage = () => {
         fetchCategories();
     }, [token]);
 
+    const handleDeleteClick = (id: string, name: string) => {
+        setCategoryToDelete({id, name});
+        setDeleteModalOpen(true);
+    };
+
     const handleDelete = async (id: string) => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa danh mục này không?')) {
-            try {
-                await deleteCategory(token, id);
-                setCategories(categories.filter(category => category.id !== id));
-            } catch (err: any) {
-                setError(err.message || 'Xóa danh mục thất bại');
-            }
+        try {
+            await deleteCategory(token, id);
+            setCategories(categories.filter(category => category.id !== id));
+            setDeleteModalOpen(false);
+            toast.success('Xóa danh mục thành công!', {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+            });
+        } catch (err: any) {
+            setError(err.message || 'Xóa danh mục thất bại');
+            toast.error(err.message || 'Xóa danh mục thất bại', {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+            });
         }
     };
 
@@ -192,7 +216,7 @@ const AdminCategoryPage = () => {
                                                     Sửa
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDelete(category.id)}
+                                                    onClick={() => handleDeleteClick(category.id, category.name)}
                                                     className="text-red-600 hover:text-red-800 transition-all duration-200 font-semibold flex items-center gap-1"
                                                 >
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -229,6 +253,46 @@ const AdminCategoryPage = () => {
                             onCancel={() => setEditingCategory(null)}
                             refreshCategories={fetchCategories}
                         />
+                    </div>
+                )}
+
+                {deleteModalOpen && categoryToDelete && (
+                    <div className="fixed inset-0 bg-gradient-to-br from-gray-900/40 to-indigo-900/40 flex items-center justify-center z-50 p-4 md:p-6">
+                        <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
+                            <div className="p-6">
+                                <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
+                                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                </div>
+                                <div className="mt-4 text-center">
+                                    <h3 className="text-lg font-medium text-gray-900">Xác nhận xóa danh mục</h3>
+                                    <div className="mt-2">
+                                        <p className="text-sm text-gray-500">
+                                            Bạn có chắc chắn muốn xóa <span className="font-semibold">{categoryToDelete.name}</span> không?
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                                <button
+                                    type="button"
+                                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+                                    onClick={() => {
+                                        handleDelete(categoryToDelete.id);
+                                    }}
+                                >
+                                    Xóa
+                                </button>
+                                <button
+                                    type="button"
+                                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                                    onClick={() => setDeleteModalOpen(false)}
+                                >
+                                    Hủy bỏ
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>
