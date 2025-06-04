@@ -173,7 +173,7 @@ const AdminCategoryPage = () => {
                                                     <img
                                                         src={category.image}
                                                         alt={category.name}
-                                                        className="h-14 w-14 rounded-lg object-cover border border-gray-200 shadow-sm"
+                                                         className="h-14 w-14 rounded-lg object-cover border border-gray-200 shadow-sm"
                                                     />
                                                 )}
                                                 <div className="text-base font-medium text-gray-900">
