@@ -9,7 +9,8 @@ import {
   MdSettings,
   MdBarChart,
   MdLogout,
-  MdCategory
+  MdCategory,
+  MdCollections // Thêm biểu tượng cho quản lý poster
 } from 'react-icons/md';
 
 const AdminSidebar: React.FC = () => {
@@ -22,6 +23,7 @@ const AdminSidebar: React.FC = () => {
     { to: '/admin/users', label: 'Users', icon: MdPeople },
     { to: '/admin/categories', label: 'Categories', icon: MdCategory },
     { to: '/admin/products', label: 'Products', icon: MdInventory2 },
+    { to: '/admin/posters', label: 'Posters', icon: MdCollections }, // Thêm mục quản lý poster
     { to: '/admin/orders', label: 'Orders', icon: MdShoppingCart },
     { to: '/admin/reports', label: 'Reports', icon: MdBarChart },
     { to: '/admin/settings', label: 'Settings', icon: MdSettings },
@@ -74,22 +76,22 @@ const AdminSidebar: React.FC = () => {
           {/* Nút Đăng xuất */}
           {user && (
             <li>
-      <button
-        onClick={handleLogout}
-        className="flex items-center p-2 hover:bg-red-400 rounded w-full text-left transition-colors duration-200"
-        title="Logout"
-      >
-        <MdLogout className="min-w-[24px] h-6" size={24} />
-        <span
-          className={`ml-3 transition-opacity duration-300 ${
-            isExpanded ? 'opacity-100' : 'opacity-0' 
-          } whitespace-nowrap`}
-        >
-          Đăng Xuất
-        </span>
-      </button>
-    </li>
-   )} 
+              <button
+                onClick={handleLogout}
+                className="flex items-center p-2 hover:bg-red-400 rounded w-full text-left transition-colors duration-200"
+                title="Logout"
+              >
+                <MdLogout className="min-w-[24px] h-6" size={24} />
+                <span
+                  className={`ml-3 transition-opacity duration-300 ${
+                    isExpanded ? 'opacity-100' : 'opacity-0' 
+                  } whitespace-nowrap`}
+                >
+                  Đăng Xuất
+                </span>
+              </button>
+            </li>
+          )} 
         </ul>
       </nav>
     </div>

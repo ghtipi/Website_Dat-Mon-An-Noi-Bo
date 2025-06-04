@@ -23,7 +23,7 @@ const CreateMenu: React.FC<CreateMenuProps> = ({
     name: menu.name || '',
     description: menu.description || '',
     price: menu.price || 0,
-    category_ids: menu.category_ids || [], // Initialize with category_ids array
+    category_ids: menu.category_ids || [], 
     image: menu.image || '',
     status: menu.status === 'active' ? 'active' : 'inactive',
     stock: menu.stock !== undefined ? menu.stock : '',
@@ -53,7 +53,7 @@ const CreateMenu: React.FC<CreateMenuProps> = ({
       name: menu.name || '',
       description: menu.description || '',
       price: menu.price || 0,
-      category_ids: menu.category_ids || [], // Use category_ids directly
+      category_ids: menu.category_ids || [], 
       image: menu.image || '',
       status: menu.status === 'active' ? 'active' : 'inactive',
       stock: menu.stock !== undefined ? menu.stock : '',

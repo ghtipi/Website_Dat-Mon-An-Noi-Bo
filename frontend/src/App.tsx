@@ -15,6 +15,8 @@ import AdminDashboard from './Pages/Admin/AdminDashboard';
 import AdminCategoryPage from './Pages/Admin/Category/AdminCategoryPage';
 import AdminMenuPage from './Pages/Admin/Menu/AdminMenuPage';
 import AdminUserPage from './Pages/Admin/User/AdminUserPage';
+import AdminPosterPage from './Pages/Admin/Poster/AdminPosterPage';
+
 //pages Auth
 import LoginPage from './Pages/Auth/LoginPage';
 //pages Manager
@@ -51,6 +53,8 @@ function App() {
                     <Route path="categories" element={<AdminCategoryPage />} />
                     <Route path="products" element={<AdminMenuPage />} />
                     <Route path="users" element={<AdminUserPage />} />
+                    <Route path="posters" element={<AdminPosterPage />} />
+
 
                     {/* các route quản lý khác */}
                   </Routes>

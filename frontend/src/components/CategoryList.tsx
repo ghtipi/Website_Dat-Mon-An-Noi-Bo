@@ -12,11 +12,12 @@ const CategoryList: React.FC = () => {
       try {
         setLoading(true);
         const data = await categoryService.getAllCategories();
-        // Thêm "Tất cả" vào đầu danh sách
         const allCategory: Category = {
-          id: 'all', 
+          id: 'all',
           name: 'Tất cả',
           slug: 'all',
+          image: '', // Không có hình ảnh
+          description: 'Xem tất cả các món ăn có sẵn',
         };
         setCategories([allCategory, ...data]);
         setError(null);
@@ -38,7 +39,10 @@ const CategoryList: React.FC = () => {
             <div
               key={index}
               className="flex flex-col items-center p-4 rounded-xl bg-gray-100/50 backdrop-blur-sm animate-pulse"
-            ></div>
+            >
+              <div className="w-20 h-20 bg-gray-300 rounded-full mb-2"></div>
+              <div className="w-16 h-4 bg-gray-300 rounded"></div>
+            </div>
           ))}
         </div>
       </div>
@@ -82,12 +86,49 @@ const CategoryList: React.FC = () => {
           <Link
             key={category.id}
             to={`/menu/${category.slug}`}
-            className={`flex flex-col items-center p-2 rounded-xl border shadow-lg hover:shadow-2xl transition-all duration-300 group 
+            className={`relative flex flex-col items-center p-4 rounded-xl border shadow-lg hover:shadow-2xl transition-all duration-300 group 
               ${category.slug === 'all' ? 'bg-teal-500/80 text-white border-teal-600' : 'bg-white/30 backdrop-blur-md border-gray-300'}`}
           >
-            <span className="font-medium text-center text-sm group-hover:text-teal-600 transition-colors duration-300">
+            {/* Xử lý khi không có hình ảnh (trường hợp "Tất cả") */}
+            {category.image ? (
+              <img
+                src={category.image}
+                alt={category.name}
+                className="w-20 h-20 object-cover rounded-full mb-2 transition-transform duration-300 group-hover:scale-110"
+              />
+            ) : (
+              <div className="w-20 h-20 flex items-center justify-center bg-white/20 rounded-full mb-2 transition-transform duration-300 group-hover:scale-110">
+                <svg 
+                  className="w-10 h-10" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M4 6h16M4 12h16M4 18h16" 
+                  />
+                </svg>
+              </div>
+            )}
+            
+            {/* Category Name */}
+            <span className={`font-medium text-center text-sm transition-colors duration-300 ${
+              category.slug === 'all' ? 'text-white' : 'group-hover:text-teal-600'
+            }`}>
               {category.name}
             </span>
+            
+            {/* Description on Hover */}
+            {category.description && (
+              <div className={`absolute top-full mt-2 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 ${
+                category.slug === 'all' ? 'bg-white text-teal-800' : 'bg-gray-800 text-white'
+              }`}>
+                <div dangerouslySetInnerHTML={{ __html: category.description }} />
+              </div>
+            )}
           </Link>
         ))}
       </div>

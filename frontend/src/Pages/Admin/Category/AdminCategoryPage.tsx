@@ -90,6 +90,15 @@ const AdminCategoryPage = () => {
         setEditingCategory(null);
     };
 
+    // Helper function to strip HTML tags and get first 3 words
+    const stripHtmlAndTruncate = (html: string) => {
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        const text = div.textContent || div.innerText || '';
+        const words = text.trim().split(/\s+/);
+        return words.slice(0, 3).join(' ') + (words.length > 3 ? '...' : '');
+    };
+
     if (loading) return (
         <div className="flex items-center justify-center h-screen bg-gray-50">
             <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-600"></div>
@@ -172,11 +181,22 @@ const AdminCategoryPage = () => {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-5">
-                                            <div className="text-sm text-gray-700 line-clamp-2">
-                                                {category.description || 'Không có mô tả'}
+                                        <td className="px-6 py-5 relative z-0">
+                                            <div className="group inline-block relative">
+                                                <div className="text-sm text-gray-700 truncate max-w-[200px]">
+                                                {category.description
+                                                    ? stripHtmlAndTruncate(category.description)
+                                                    : 'Không có mô tả'}
+                                                </div>
+
+                                                {category.description && (
+                                                <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50 hidden group-hover:block bg-gray-100 text-gray-700 hover:bg-gray-200 hover:text-gray-800 text-sm rounded-lg p-3 shadow-lg w-max max-w-xs transition">
+                                                    <div dangerouslySetInnerHTML={{ __html: category.description }} />
+                                                </div>
+                                                )}
                                             </div>
-                                        </td>
+                                            </td>
+
                                         <td className="px-6 py-5 whitespace-nowrap">
                                             <div className="text-sm text-gray-700">
                                                 {category.slug || '-'}

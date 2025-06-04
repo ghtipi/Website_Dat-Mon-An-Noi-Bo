@@ -1,11 +1,14 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, memo } from 'react';
+import { FixedSizeList as List } from 'react-window';
+import AutoSizer from 'react-virtualized-auto-sizer';
 import LayoutAdmin from '../../../components/Layout/LayoutAdmin';
-import { getMenus, MenuData, updateMenu, getMenu, deleteMenu} from '../../../services/admin/Menu';
+import { getMenus, MenuData, updateMenu, getMenu, deleteMenu } from '../../../services/admin/Menu';
 import { getCategories } from '../../../services/admin/Category';
 import CreateMenu from '../../../components/Admin/Menu/CreateMenu';
 import EditMenu from '../../../components/Admin/Menu/EditMenu';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { debounce } from 'lodash';
 
 // Định nghĩa giao diện CategoryData
 export interface CategoryData {
@@ -25,9 +28,175 @@ export interface MenuFilterParams {
   price_range: string;
 }
 
+function stripHtmlAndTruncate(html: string, maxLength: number = 60): string {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  const text = tmp.textContent || tmp.innerText || '';
+  return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
+}
+
+// Define column widths for consistent alignment
+const COLUMN_WIDTHS = {
+  name: '25%',
+  description: '20%',
+  price: '15%',
+  category: '15%',
+  stock: '15%',
+  status: '15%',
+  actions: '15%',
+};
+
+// Memoized MenuRow component
+const MenuRow = memo(
+  ({
+    index,
+    style,
+    data: { menuItems, categories, handleStatusToggle, handleEdit, handleDeleteClick },
+  }: {
+    index: number;
+    style: React.CSSProperties;
+    data: {
+      menuItems: MenuData[];
+      categories: CategoryData[];
+      handleStatusToggle: (menu: MenuData) => void;
+      handleEdit: (id: string) => void;
+      handleDeleteClick: (id: string, name: string) => void;
+    };
+  }) => {
+    const item = menuItems[index];
+    const getCategoryNames = (category_ids: string[] | undefined) => {
+      if (!Array.isArray(category_ids) || !Array.isArray(categories)) return 'Không có danh mục';
+      return category_ids
+        .map((id) => categories.find((cat) => cat.id === id)?.name || 'Không có danh mục')
+        .join(', ');
+    };
+
+    return (
+      <tr
+        style={{
+          ...style,
+          display: 'flex',
+          width: '100%',
+        }}
+        className="hover:bg-gray-50 transition-all duration-200"
+      >
+        <td style={{ width: COLUMN_WIDTHS.name }} className="px-6 py-5 whitespace-nowrap">
+          <div className="flex items-center gap-4">
+            {item.image && (
+              <img
+                src={item.image}
+                alt={item.name}
+                className="h-14 w-14 rounded-lg object-cover border border-gray-200 shadow-sm"
+                loading="lazy"
+              />
+            )}
+            <div className="text-base font-medium text-gray-900">{item.name}</div>
+          </div>
+        </td>
+        <td style={{ width: COLUMN_WIDTHS.description }} className="px-6 py-5">
+          <div className="group inline-block relative">
+            <div className="text-sm text-gray-700 truncate max-w-[200px]">
+              {item.description ? stripHtmlAndTruncate(item.description) : 'Không có mô tả'}
+            </div>
+            {item.description && (
+              <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50 hidden group-hover:block bg-gray-100 text-gray-700 hover:bg-gray-200 hover:text-gray-800 text-sm rounded-lg p-3 shadow-lg w-max max-w-xs transition">
+                <div dangerouslySetInnerHTML={{ __html: item.description }} />
+              </div>
+            )}
+          </div>
+        </td>
+        <td style={{ width: COLUMN_WIDTHS.price }} className="px-6 py-5 whitespace-nowrap">
+          <div className="text-sm text-gray-700">{item.price.toLocaleString('vi-VN')}đ</div>
+        </td>
+        <td style={{ width: COLUMN_WIDTHS.category }} className="px-6 py-5">
+          <div className="text-sm text-gray-500">{getCategoryNames(item.category_ids)}</div>
+        </td>
+        <td style={{ width: COLUMN_WIDTHS.stock }} className="px-6 py-5 whitespace-nowrap">
+          <div className="text-sm text-gray-700">
+            {item.stock !== undefined ? item.stock : 'Không giới hạn'}
+          </div>
+        </td>
+        <td style={{ width: COLUMN_WIDTHS.status }} className="px-6 py-5 whitespace-nowrap">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => handleStatusToggle(item)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-in-out ${
+                item.status === 'active' ? 'bg-green-500' : 'bg-gray-300'
+              }`}
+              aria-pressed={item.status === 'active'}
+            >
+              <span
+                className={`inline-block h-4 w-4 rounded-full bg-white transform transition-transform duration-200 ease-in-out ${
+                  item.status === 'active' ? 'translate-x-5' : 'translate-x-1'
+                }`}
+              />
+              <span className="sr-only">{item.status === 'active' ? 'Kích Hoạt' : 'Không Kích Hoạt'}</span>
+            </button>
+            <span className="text-sm text-gray-700 font-medium">
+              {item.status === 'active' ? 'Kích Hoạt' : 'Không Kích Hoạt'}
+            </span>
+          </div>
+        </td>
+        <td style={{ width: COLUMN_WIDTHS.actions }} className="px-6 py-5 whitespace-nowrap text-sm font-medium">
+          <div className="flex gap-4">
+            <button
+              onClick={() => handleEdit(item.id)}
+              className="text-indigo-600 hover:text-indigo-800 transition-all duration-200 font-semibold flex items-center gap-1"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                />
+              </svg>
+              Sửa
+            </button>
+            <button
+              onClick={() => handleDeleteClick(item.id, item.name)}
+              className="text-red-600 hover:text-red-800 transition-all duration-200 font-semibold flex items-center gap-1"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+              Xóa
+            </button>
+          </div>
+        </td>
+      </tr>
+    );
+  },
+  (prevProps, nextProps) => {
+    const prevItem = prevProps.data.menuItems[prevProps.index];
+    const nextItem = nextProps.data.menuItems[nextProps.index];
+    return (
+      prevItem.id === nextItem.id &&
+      prevItem.status === nextItem.status &&
+      prevItem.name === nextItem.name &&
+      prevItem.description === nextItem.description &&
+      prevItem.price === nextItem.price &&
+      prevItem.stock === nextItem.stock &&
+      prevItem.image === nextItem.image &&
+      prevItem.category_ids === nextItem.category_ids &&
+      prevProps.data.categories === nextProps.data.categories &&
+      prevProps.data.handleStatusToggle === nextProps.data.handleStatusToggle &&
+      prevProps.data.handleEdit === nextProps.data.handleEdit &&
+      prevProps.data.handleDeleteClick === nextProps.data.handleDeleteClick
+    );
+  }
+);
+
 const AdminMenuPage: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [menuToDelete, setMenuToDelete] = useState<{id: string, name: string} | null>(null);
+  const [menuToDelete, setMenuToDelete] = useState<{ id: string; name: string } | null>(null);
   const [menuItems, setMenuItems] = useState<MenuData[]>([]);
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -45,6 +214,13 @@ const AdminMenuPage: React.FC = () => {
   });
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
 
+  const debouncedSetSearch = useCallback(
+    debounce((value: string) => {
+      setFilters((prev) => ({ ...prev, search: value }));
+    }, 500),
+    []
+  );
+
   const fetchMenusAndCategories = useCallback(async () => {
     try {
       setLoading(true);
@@ -53,7 +229,7 @@ const AdminMenuPage: React.FC = () => {
         search: '',
         price_range: '',
       };
-      
+
       if (filters.category_ids && filters.category_ids.length > 0) {
         filterParams.category_ids = filters.category_ids;
       }
@@ -97,6 +273,8 @@ const AdminMenuPage: React.FC = () => {
         price_max: max,
         price_range: value,
       }));
+    } else if (name === 'search') {
+      debouncedSetSearch(value);
     } else {
       setFilters((prev) => ({
         ...prev,
@@ -131,42 +309,46 @@ const AdminMenuPage: React.FC = () => {
     }
   }, [token]);
 
-  const handleDelete = useCallback(async (id: string) => {
-  try {
-    await deleteMenu(token, id);
-    setMenuItems((prev) => prev.filter((item) => item.id !== id));
-    
-    // Hiển thị thông báo thành công
-    setDeleteModalOpen(false);
-    toast.success('Xóa món ăn thành công!', {
-      position: "top-right",
-      autoClose: 3000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-    });
-  } catch (err: any) {
-    setError(err.message || 'Xóa món ăn thất bại');
-    toast.error(err.message || 'Xóa món ăn thất bại', {
-      position: "top-right",
-      autoClose: 3000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-    });
-  }
-}, [token]);
+  const handleDelete = useCallback(
+    async (id: string) => {
+      try {
+        await deleteMenu(token, id);
+        setMenuItems((prev) => prev.filter((item) => item.id !== id));
+        setDeleteModalOpen(false);
+        toast.success('Xóa món ăn thành công!', {
+          position: 'top-right',
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      } catch (err: any) {
+        setError(err.message || 'Xóa món ăn thất bại');
+        toast.error(err.message || 'Xóa món ăn thất bại', {
+          position: 'top-right',
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      }
+    },
+    [token]
+  );
 
-  const handleEdit = useCallback(async (id: string) => {
-    try {
-      const menu = await getMenu(token, id);
-      setEditingMenu(menu);
-    } catch (err: any) {
-      setError(err.message || 'Không tìm thấy món để chỉnh sửa');
-    }
-  }, [token]);
+  const handleEdit = useCallback(
+    async (id: string) => {
+      try {
+        const menu = await getMenu(token, id);
+        setEditingMenu(menu);
+      } catch (err: any) {
+        setError(err.message || 'Không tìm thấy món để chỉnh sửa');
+      }
+    },
+    [token]
+  );
 
   const handleUpdateSuccess = useCallback((updatedMenu: MenuData) => {
     setMenuItems((prev) =>
@@ -180,39 +362,33 @@ const AdminMenuPage: React.FC = () => {
     setShowCreateModal(false);
   }, []);
 
-
   const handleDeleteClick = (id: string, name: string) => {
-    setMenuToDelete({id, name});
+    setMenuToDelete({ id, name });
     setDeleteModalOpen(true);
   };
 
-  const getCategoryNames = (category_ids: string[] | undefined) => {
-    if (!Array.isArray(category_ids) || !Array.isArray(categories)) return 'Không có danh mục';
-    return category_ids
-      .map((id) => categories.find((cat) => cat.id === id)?.name || 'Không có danh mục')
-      .join(', ');
-  };
-
-  if (loading && menuItems.length === 0) return (
-    <div className="flex items-center justify-center h-screen bg-gray-50">
-      <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-600"></div>
-    </div>
-  );
-
-  if (error) return (
-    <div className="flex items-center justify-center h-screen bg-gray-50">
-      <div className="bg-red-100 text-red-800 p-6 rounded-xl shadow-lg max-w-md flex items-center gap-3">
-        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-          <path
-            fillRule="evenodd"
-            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-            clipRule="evenodd"
-          />
-        </svg>
-        {error}
+  if (loading && menuItems.length === 0)
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-600"></div>
       </div>
-    </div>
-  );
+    );
+
+  if (error)
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <div className="bg-red-100 text-red-800 p-6 rounded-xl shadow-lg max-w-md flex items-center gap-3">
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fillRule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+              clipRule="evenodd"
+            />
+          </svg>
+          {error}
+        </div>
+      </div>
+    );
 
   return (
     <LayoutAdmin>
@@ -266,7 +442,7 @@ const AdminMenuPage: React.FC = () => {
                 <input
                   type="text"
                   name="search"
-                  value={filters.search || ''}
+                  defaultValue={filters.search || ''}
                   onChange={handleInputChange}
                   placeholder="Nhập tên hoặc mô tả món ăn..."
                   className="w-full p-4 pl-12 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 transition-all duration-300 shadow-sm hover:shadow-md"
@@ -301,18 +477,14 @@ const AdminMenuPage: React.FC = () => {
                       : 'Chọn danh mục'}
                   </span>
                   <svg
-                    className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isCategoryDropdownOpen ? 'rotate-180' : ''}`}
+                    className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
+                      isCategoryDropdownOpen ? 'rotate-180' : ''
+                    }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
+                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
                 {isCategoryDropdownOpen && (
@@ -323,16 +495,13 @@ const AdminMenuPage: React.FC = () => {
                     >
                       <div
                         className={`w-5 h-5 rounded-md border-2 flex items-center justify-center ${
-                          !filters.category_ids || filters.category_ids.length === 0 ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300'
+                          !filters.category_ids || filters.category_ids.length === 0
+                            ? 'bg-indigo-600 border-indigo-600'
+                            : 'border-gray-300'
                         }`}
                       >
                         {(!filters.category_ids || filters.category_ids.length === 0) && (
-                          <svg
-                            className="w-4 h-4 text-white"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                               stroke="currentColor"
                               strokeLinecap="round"
@@ -354,22 +523,19 @@ const AdminMenuPage: React.FC = () => {
                         >
                           <div
                             className={`w-5 h-5 rounded-md border-2 flex items-center justify-center ${
-                              filters.category_ids && filters.category_ids.includes(cat.id) ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300'
+                              filters.category_ids && filters.category_ids.includes(cat.id)
+                                ? 'bg-indigo-600 border-indigo-600'
+                                : 'border-gray-300'
                             }`}
                           >
                             {filters.category_ids && filters.category_ids.includes(cat.id) && (
-                              <svg
-                                className="w-4 h-4 text-white"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
+                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
                                   stroke="currentColor"
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
                                   strokeWidth={2}
-                                  d="M5 13l4 4L19 7" 
+                                  d="M5 13l4 4L19 7"
                                 />
                               </svg>
                             )}
@@ -407,13 +573,7 @@ const AdminMenuPage: React.FC = () => {
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
+                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </div>
             </div>
@@ -436,13 +596,7 @@ const AdminMenuPage: React.FC = () => {
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
+                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </div>
             </div>
@@ -469,47 +623,54 @@ const AdminMenuPage: React.FC = () => {
         </div>
 
         <div className="bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-100">
-          <table className="min-w-full divide-y divide-gray-200">
+          <table className="min-w-full divide-y divide-gray-200 table-fixed">
             <thead className="bg-gray-50">
-              <tr>
+              <tr style={{ display: 'flex', width: '100%' }}>
                 <th
                   scope="col"
+                  style={{ width: COLUMN_WIDTHS.name }}
                   className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider"
                 >
                   Món Ăn
                 </th>
                 <th
                   scope="col"
+                  style={{ width: COLUMN_WIDTHS.description }}
                   className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider"
                 >
                   Mô Tả
                 </th>
                 <th
                   scope="col"
+                  style={{ width: COLUMN_WIDTHS.price }}
                   className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider"
                 >
                   Giá
                 </th>
                 <th
                   scope="col"
+                  style={{ width: COLUMN_WIDTHS.category }}
                   className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider"
                 >
                   Danh Mục
                 </th>
                 <th
                   scope="col"
+                  style={{ width: COLUMN_WIDTHS.stock }}
                   className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider"
                 >
                   Tồn Kho
                 </th>
                 <th
                   scope="col"
+                  style={{ width: COLUMN_WIDTHS.status }}
                   className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider"
                 >
                   Trạng Thái
                 </th>
                 <th
                   scope="col"
+                  style={{ width: COLUMN_WIDTHS.actions }}
                   className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider"
                 >
                   Hành Động
@@ -518,145 +679,35 @@ const AdminMenuPage: React.FC = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {menuItems.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-6 text-center text-gray-500 text-base">
+                <tr style={{ display: 'flex', width: '100%' }}>
+                  <td
+                    colSpan={7}
+                    className="px-6 py-6 text-center text-gray-500 text-base"
+                    style={{ flex: 1 }}
+                  >
                     Không có món ăn nào.
                   </td>
                 </tr>
               ) : (
-                menuItems.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50 transition-all duration-200">
-                    <td className="px-6 py-5 whitespace-nowrap">
-                      <div className="flex items-center gap-4">
-                        {item.image && (
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="h-14 w-14 rounded-lg object-cover border border-gray-200 shadow-sm"
-                            loading="lazy"
-                          />
-                        )}
-                        <div className="text-base font-medium text-gray-900">{item.name}</div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-5">
-                      <div className="text-sm text-gray-700 line-clamp-2">
-                        {item.description || 'Không có mô tả'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap">
-                      <div className="text-sm text-gray-700">
-                        {item.price.toLocaleString('vi-VN')}đ
-                      </div>
-                    </td>
-                   <td className="px-6 py-5">
-                    <div className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {getCategoryNames(item.category_ids)}
-                    </div>
-                  </td>
-                    <td className="px-6 py-5 whitespace-nowrap">
-                      <div className="text-sm text-gray-700">
-                        {item.stock !== undefined ? item.stock : 'Không giới hạn'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => handleStatusToggle(item)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-in-out ${
-                            item.status === 'active' ? 'bg-green-500' : 'bg-gray-300'
-                          }`}
-                          aria-pressed={item.status === 'active'}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 rounded-full bg-white transform transition-transform duration-200 ease-in-out ${
-                              item.status === 'active' ? 'translate-x-5' : 'translate-x-1'
-                            }`}
-                          />
-                          <span className="sr-only">
-                            {item.status === 'active' ? 'Kích Hoạt' : 'Không Kích Hoại'}
-                          </span>
-                        </button>
-                        <span className="text-sm text-gray-700 font-medium">
-                          {item.status === 'active' ? 'Kích Hoạt' : 'Không Kích Hoại'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap text-sm font-medium">
-                      <div className="flex gap-4">
-                        <button
-                          onClick={() => handleEdit(item.id)}
-                          className="text-indigo-600 hover:text-indigo-800 transition-all duration-200 font-semibold flex items-center gap-1"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                              stroke="currentColor"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            />
-                          </svg>
-                          Sửa
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(item.id, item.name)}
-                          className="text-red-600 hover:text-red-800 transition-all duration-200 font-semibold flex items-center gap-1"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                              stroke="currentColor"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                          Xóa
-                        </button>
-                        {deleteModalOpen && menuToDelete && (
-                          <div className="fixed inset-0 bg-gradient-to-br from-gray-900/40 to-indigo-900/40 flex items-center justify-center z-50 p-4 md:p-6">
-                            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
-                              <div className="p-6">
-                                <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
-                                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                  </svg>
-                                </div>
-                                <div className="mt-4 text-center">
-                                  <h3 className="text-lg font-medium text-gray-900">Xác nhận xóa món ăn</h3>
-                                  <div className="mt-2">
-                                    <p className="text-sm text-gray-500">
-                                      Bạn có chắc chắn muốn xóa <span className="font-semibold">{menuToDelete.name}</span> không? 
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                                <button
-                                  type="button"
-                                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
-                                  onClick={() => {
-                                    handleDelete(menuToDelete.id);
-                                  }}
-                                >
-                                  Xóa
-                                </button>
-                                <button
-                                  type="button"
-                                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                                  onClick={() => setDeleteModalOpen(false)}
-                                >
-                                  Hủy bỏ
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                <AutoSizer disableHeight>
+                  {({ width }) => (
+                    <List
+                      height={600}
+                      itemCount={menuItems.length}
+                      itemSize={80}
+                      width={width}
+                      itemData={{
+                        menuItems,
+                        categories,
+                        handleStatusToggle,
+                        handleEdit,
+                        handleDeleteClick,
+                      }}
+                    >
+                      {MenuRow}
+                    </List>
+                  )}
+                </AutoSizer>
               )}
             </tbody>
           </table>
@@ -693,6 +744,51 @@ const AdminMenuPage: React.FC = () => {
               onCancel={() => setEditingMenu(null)}
               refreshMenus={fetchMenusAndCategories}
             />
+          </div>
+        )}
+
+        {deleteModalOpen && menuToDelete && (
+          <div className="fixed inset-0 bg-gradient-to-br from-gray-900/40 to-indigo-900/40 flex items-center justify-center z-50 p-4 md:p-6">
+            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
+              <div className="p-6">
+                <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
+                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                  </svg>
+                </div>
+                <div className="mt-4 text-center">
+                  <h3 className="text-lg font-medium text-gray-900">Xác nhận xóa món ăn</h3>
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-500">
+                      Bạn có chắc chắn muốn xóa <span className="font-semibold">{menuToDelete.name}</span> không?
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                <button
+                  type="button"
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+                  onClick={() => {
+                    handleDelete(menuToDelete.id);
+                  }}
+                >
+                  Xóa
+                </button>
+                <button
+                  type="button"
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                  onClick={() => setDeleteModalOpen(false)}
+                >
+                  Hủy bỏ
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

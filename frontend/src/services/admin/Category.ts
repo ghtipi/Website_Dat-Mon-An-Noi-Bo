@@ -76,11 +76,8 @@ export const updateCategory = async (token: string, id: string, data: CategoryDa
 
 export const deleteCategory = async (token: string, id: string): Promise<void> => {
   try {
-    const response = await axios.delete(`${API_BASE}/categories/${id}`, authHeaders(token));
-    if (!response.data) {
-      throw new Error('No response from server');
-    }
-    return response.data;
+    await axios.delete(`${API_BASE}/categories/${id}`, authHeaders(token));
+    return;
   } catch (error: any) {
     const message = error.response?.data?.message || `Failed to delete category with ID ${id}`;
     console.error('Error deleting category:', error);

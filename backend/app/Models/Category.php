@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use MongoDB\Laravel\Eloquent\Model;
-use MongoDB\BSON\ObjectId;
 use App\Models\MenuItem;
 
 class Category extends Model
