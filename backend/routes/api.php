@@ -38,7 +38,8 @@ Route::group(['prefix' => 'auth'], function () {
 Route::middleware('auth:api')->group(function () {
 // Categories
     //Admin-Manager
-    Route::middleware('role:admin')->group(function () {
+
+    Route::middleware('role:admin,manager')->group(function () {
         // User management routes
         Route::prefix('admin')->group(function () {
             Route::get('/users', [UserController::class, 'index']);

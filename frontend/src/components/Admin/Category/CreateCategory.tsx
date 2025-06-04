@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { createCategory, CategoryData } from '../../../services/admin/Category';
-import { uploadImage } from '../../../services/admin/ImageService';
+import { uploadImage } from '../../../services/ImageService';
 
 type CreateCategoryProps = {
     token: string;

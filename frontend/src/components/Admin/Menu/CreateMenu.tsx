@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createMenu, MenuData } from '../../../services/admin/Menu';
 import { getCategories, CategoryData } from '../../../services/admin/Category';
-import { uploadImage } from '../../../services/admin/ImageService';
+import { uploadImage } from '../../../services/ImageService';
 
 type CreateMenuProps = {
   menu: MenuData;

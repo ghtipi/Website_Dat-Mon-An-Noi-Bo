@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { updateCategory, CategoryData } from '../../../services/admin/Category';
-import { uploadImage } from '../../../services/admin/ImageService';
+import { uploadImage } from '../../../services/ImageService';
 
 type EditCategoryProps = {
   category: CategoryData;

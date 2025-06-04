@@ -1,19 +1,33 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+//layout
 import Header from './components/Layout/Header';
 import HeaderAdmin from './components/Layout/HeaderAdmin';
 import HeaderManager from './components/Layout/HeaderManager';
-import ProtectedRoute from './components/ProtectedRoute';
 import UserSidebar from './components/Layout/Sidebar';
 import AdminSidebar from './components/Layout/SidebarAdmin';
 import ManagerSidebar from './components/Layout/SidebarManager';
-import LoginPage from './Pages/Auth/LoginPage';
+
+
+import ProtectedRoute from './components/ProtectedRoute';
+//pages Admin
 import AdminDashboard from './Pages/Admin/AdminDashboard';
-import ManagerDashboard from './Pages/Manager/ManagerDashboard';
-import HomePage from './Pages/User/HomePage';
 import AdminCategoryPage from './Pages/Admin/Category/AdminCategoryPage';
 import AdminMenuPage from './Pages/Admin/Menu/AdminMenuPage';
 import AdminUserPage from './Pages/Admin/User/AdminUserPage';
+//pages Auth
+import LoginPage from './Pages/Auth/LoginPage';
+//pages Manager
+import ManagerDashboard from './Pages/Manager/ManagerDashboard';
+import ManagerCategoryPage from './Pages/Manager/Category/ManagerCategoryPage';
+import ManagerMenuPage from './Pages/Manager/Menu/ManagerMenuPage';
+
+
+//pages User
+import HomePage from './Pages/User/HomePage';
+
+
+
 
 function App() {
   return (
@@ -57,6 +71,8 @@ function App() {
                 <div className="flex-1">
                   <Routes>
                     <Route path="/" element={<ManagerDashboard />} />
+                    <Route path="categories" element={<ManagerCategoryPage />} />
+                    <Route path="products" element={<ManagerMenuPage />} />
                     {/* các route quản lý  */}
                   </Routes>
                 </div>

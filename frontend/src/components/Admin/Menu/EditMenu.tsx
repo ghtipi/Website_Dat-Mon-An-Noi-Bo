@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { updateMenu, MenuData } from '../../../services/admin/Menu';
-import { uploadImage } from '../../../services/admin/ImageService';
+import { uploadImage } from '../../../services/ImageService';
 import { getCategories, CategoryData } from '../../../services/admin/Category';
 
 type EditMenuProps = {
