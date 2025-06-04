@@ -14,7 +14,7 @@ const CreateUser = ({ token, onSuccess, onCancel }: CreateUserProps) => {
     password: '',
     phone: '',
     default_address: '',
-    role: 'user',
+    role: 'manager', // Set default role to 'manager'
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -154,8 +154,9 @@ const CreateUser = ({ token, onSuccess, onCancel }: CreateUserProps) => {
               className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white shadow-sm transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
               disabled={loading}
             >
-              <option value="user">Người dùng</option>
-              <option value="admin">Quản trị viên</option>
+              <option value="user" className="text-green-800 bg-green-50">Người dùng</option>
+              <option value="manager" className="text-blue-800 bg-blue-50">Quản lý</option>
+              <option value="admin" className="text-purple-800 bg-purple-50">Quản trị viên</option>
             </select>
           </div>
 

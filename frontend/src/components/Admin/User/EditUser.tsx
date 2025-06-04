@@ -148,6 +148,7 @@ const EditUser = ({ token, user, onSuccess, onCancel }: EditUserProps) => {
               disabled={loading}
             >
               <option value="user">Người dùng</option>
+              <option value="manager">Quản lý</option>
               <option value="admin">Quản trị viên</option>
             </select>
           </div>
@@ -175,4 +176,4 @@ const EditUser = ({ token, user, onSuccess, onCancel }: EditUserProps) => {
   );
 };
 
-export default EditUser; 
+export default EditUser;

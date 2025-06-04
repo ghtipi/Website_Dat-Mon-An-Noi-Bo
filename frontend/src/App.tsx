@@ -1,14 +1,16 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import Header from './components/Layout/Header';
+import HeaderAdmin from './components/Layout/HeaderAdmin';
+import HeaderManager from './components/Layout/HeaderManager';
 import ProtectedRoute from './components/ProtectedRoute';
+import UserSidebar from './components/Layout/Sidebar';
+import AdminSidebar from './components/Layout/SidebarAdmin';
+import ManagerSidebar from './components/Layout/SidebarManager';
 import LoginPage from './Pages/Auth/LoginPage';
 import AdminDashboard from './Pages/Admin/AdminDashboard';
 import ManagerDashboard from './Pages/Manager/ManagerDashboard';
 import HomePage from './Pages/User/HomePage';
-import UserSidebar from './components/Layout/Sidebar';
-import AdminSidebar from './components/Layout/SidebarAdmin';
-import ManagerSidebar from './components/ManagerSidebar';
 import AdminCategoryPage from './Pages/Admin/Category/AdminCategoryPage';
 import AdminMenuPage from './Pages/Admin/Menu/AdminMenuPage';
 import AdminUserPage from './Pages/Admin/User/AdminUserPage';
@@ -27,7 +29,7 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <div className="flex">
-                <Header />
+                <HeaderAdmin />
                 <AdminSidebar />
                 <div className="flex-1">
                   <Routes>
@@ -50,11 +52,11 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['manager']}>
               <div className="flex">
-                <Header />
+                <HeaderManager />
                 <ManagerSidebar />
                 <div className="flex-1">
                   <Routes>
-                    <Route path="dashboard" element={<ManagerDashboard />} />
+                    <Route path="/" element={<ManagerDashboard />} />
                     {/* các route quản lý  */}
                   </Routes>
                 </div>

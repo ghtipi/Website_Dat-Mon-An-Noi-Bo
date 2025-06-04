@@ -264,9 +264,11 @@ const AdminUserPage = () => {
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                           user.role === 'admin' 
                             ? 'bg-purple-100 text-purple-800' 
+                            : user.role === 'manager' 
+                            ? 'bg-blue-100 text-blue-800' 
                             : 'bg-green-100 text-green-800'
                         }`}>
-                          {user.role === 'admin' ? 'Quản trị viên' : 'Người dùng'}
+                          {user.role === 'admin' ? 'Quản trị viên' : user.role === 'manager' ? 'Quản lý' : 'Người dùng'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -370,4 +372,4 @@ const AdminUserPage = () => {
   );
 };
 
-export default AdminUserPage; 
+export default AdminUserPage;

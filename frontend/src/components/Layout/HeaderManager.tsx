@@ -4,99 +4,95 @@ import useTypingEffect from '../../hooks/useTypingEffect';
 import TimeInfo from '../../components/TimeInfo';
 import { useAuth } from '../../contexts/AuthContext';
 
-const HeaderAdmin = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [hoveringAvatar, setHoveringAvatar] = useState(false);
-  const [hoveringMenu, setHoveringMenu] = useState(false);
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const hideMenuTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+const HeaderManager = () => {
+    const [searchQuery, setSearchQuery] = useState('');
+    const [hoveringAvatar, setHoveringAvatar] = useState(false);
+    const [hoveringMenu, setHoveringMenu] = useState(false);
+    const [showUserMenu, setShowUserMenu] = useState(false);
+    const hideMenuTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { user, logout } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { user, logout } = useAuth();
 
-  const isOnAdminPage = location.pathname.startsWith('/admin');
-  const isLoggedIn = !!user;
+    const isOnManagerPage = location.pathname.startsWith('/manager');
+    const isLoggedIn = !!user;
 
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        console.log('Searching for:', searchQuery);
+    };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Searching for:', searchQuery);
-  };
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+    const getInitials = (name?: string) => {
+        if (!name) return 'U';
+        const words = name.trim().split(' ').filter(Boolean);
+        if (words.length === 0) return 'U';
+        if (words.length === 1) return words[0][0].toUpperCase();
+        const secondLast = words[words.length - 2][0].toUpperCase();
+        const last = words[words.length - 1][0].toUpperCase();
+        return secondLast + last;
+    };
 
-  const getInitials = (name?: string) => {
-    if (!name) return 'U';
-    const words = name.trim().split(' ').filter(Boolean);
-    if (words.length === 0) return 'U';
-    if (words.length === 1) return words[0][0].toUpperCase();
-    const secondLast = words[words.length - 2][0].toUpperCase();
-    const last = words[words.length - 1][0].toUpperCase();
-    return secondLast + last;
-  };
+    const getDisplayName = () => {
+        return user?.name || 'User';
+    };
 
-  const getDisplayName = () => {
-    return user?.name || 'User';
-    
-  };
+    const getPlaceholderText = () => {
+        if (location.pathname.startsWith('/admin')) return 'Nhập tìm kiếm của bạn...';
+        if (location.pathname.startsWith('/manager')) return 'Tìm kiếm dữ liệu quản lý...';
+        return 'Tìm kiếm món ăn...';
+    };
 
-  const getPlaceholderText = () => {
-    if (location.pathname.startsWith('/admin')) return 'Nhập tìm kiếm của bạn...';
-    if (location.pathname.startsWith('/manager')) return 'Tìm kiếm dữ liệu quản lý...';
-    return 'Tìm kiếm món ăn...';
-  };
+    const sreachPlaceholder = useTypingEffect({
+        text: getPlaceholderText(),
+        active: searchQuery === '',
+    });
 
-  const sreachPlaceholder = useTypingEffect({
-    text: getPlaceholderText(),
-    active: searchQuery === '',
-    
-  });
+    const clearHideTimeout = () => {
+        if (hideMenuTimeout.current) {
+            clearTimeout(hideMenuTimeout.current);
+            hideMenuTimeout.current = null;
+        }
+    };
 
+    const onAvatarMouseEnter = () => {
+        clearHideTimeout();
+        setHoveringAvatar(true);
+        setShowUserMenu(true);
+    };
 
-  const clearHideTimeout = () => {
-    if (hideMenuTimeout.current) {
-      clearTimeout(hideMenuTimeout.current);
-      hideMenuTimeout.current = null;
-    }
-  };
+    const onAvatarMouseLeave = () => {
+        setHoveringAvatar(false);
+        clearHideTimeout();
+        hideMenuTimeout.current = setTimeout(() => {
+            if (!hoveringMenu) {
+                setShowUserMenu(false);
+            }
+        }, 150);
+    };
 
-  const onAvatarMouseEnter = () => {
-    clearHideTimeout();
-    setHoveringAvatar(true);
-    setShowUserMenu(true);
-  };
+    const onMenuMouseEnter = () => {
+        clearHideTimeout();
+        setHoveringMenu(true);
+        setShowUserMenu(true);
+    };
 
-  const onAvatarMouseLeave = () => {
-    setHoveringAvatar(false);
-    clearHideTimeout();
-    hideMenuTimeout.current = setTimeout(() => {
-      if (!hoveringMenu) {
-        setShowUserMenu(false);
-      }
-    }, 150);
-  };
+    const onMenuMouseLeave = () => {
+        setHoveringMenu(false);
+        clearHideTimeout();
+        hideMenuTimeout.current = setTimeout(() => {
+            if (!hoveringAvatar) {
+                setShowUserMenu(false);
+            }
+        }, 150);
+    };
 
-  const onMenuMouseEnter = () => {
-    clearHideTimeout();
-    setHoveringMenu(true);
-    setShowUserMenu(true);
-  };
-
-  const onMenuMouseLeave = () => {
-    setHoveringMenu(false);
-    clearHideTimeout();
-    hideMenuTimeout.current = setTimeout(() => {
-      if (!hoveringAvatar) {
-        setShowUserMenu(false);
-      }
-    }, 150);
-  };
-
-  return (
+    return (
     <header className="fixed top-0 left-0 right-0 bg-gray-100 backdrop-blur-sm border-b border-white/40 shadow-md z-50 pb-1">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
@@ -184,7 +180,7 @@ const HeaderAdmin = () => {
                     {(user?.role === 'admin' || user?.role === 'manager') && (
                         <Link
                           to={
-                            isOnAdminPage
+                            isOnManagerPage
                               ? '/' 
                               : user.role === 'admin'
                               ? '/admin'
@@ -192,7 +188,7 @@ const HeaderAdmin = () => {
                           }
                           className="block px-4 py-2 text-gray-700 hover:bg-teal-100"
                         >
-                          {isOnAdminPage ? 'Về trang chính' : user.role === 'admin' ? 'Admin' : 'Manager'}
+                          {isOnManagerPage ? 'Về trang chính' : user.role === 'admin' ? 'Admin' : 'Manager'}
                         </Link>
                       )}
 
@@ -232,4 +228,4 @@ const HeaderAdmin = () => {
   );
 };
 
-export default HeaderAdmin;
+export default HeaderManager;

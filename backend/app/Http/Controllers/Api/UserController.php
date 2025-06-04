@@ -189,7 +189,8 @@ class UserController extends Controller
             'password' => 'required|string|min:6',
             'phone' => 'nullable|string|max:20',
             'default_address' => 'nullable|string|max:255',
-            'role' => 'required|in:user,admin'
+            'role' => 'required|in:user,admin,manager',
+            'status' => 'required|in:active,inactive'
         ]);
 
         if ($validator->fails()) {
@@ -232,7 +233,7 @@ class UserController extends Controller
             'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $id,
             'phone' => 'nullable|string|max:20',
             'default_address' => 'nullable|string|max:255',
-            'role' => 'sometimes|required|in:user,admin',
+            'role' => 'sometimes|required|in:user,admin,manager',
             'status' => 'sometimes|required|in:active,inactive'
         ]);
 

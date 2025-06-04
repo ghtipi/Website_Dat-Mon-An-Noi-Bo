@@ -1,65 +1,69 @@
 
 
+import LayoutManager from '../../components/Layout/LayoutManager';
+
 const ManagerDashboard = () => {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Dashboard Quản lý</h1>
-      
-      {/* Thống kê */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Tổng đơn hàng hôm nay</h3>
-          <p className="text-3xl font-bold text-teal-600">25</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Đơn hàng đang xử lý</h3>
-          <p className="text-3xl font-bold text-orange-600">8</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Doanh thu hôm nay</h3>
-          <p className="text-3xl font-bold text-green-600">2.5M</p>
-        </div>
-      </div>
+    <LayoutManager>
+    <main className=" mt-24  p-8 w-full">
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Thống kê tổng quan */}
+            <div className="bg-blue-500 text-white rounded-lg p-6">
+              <h3 className="text-lg font-semibold mb-2">Tổng đơn hàng</h3>
+              <p className="text-3xl font-bold">150</p>
+            </div>
+            
+            <div className="bg-green-500 text-white rounded-lg p-6">
+              <h3 className="text-lg font-semibold mb-2">Doanh thu</h3>
+              <p className="text-3xl font-bold">15.000.000đ</p>
+            </div>
+            
+            <div className="bg-yellow-500 text-white rounded-lg p-6">
+              <h3 className="text-lg font-semibold mb-2">Người dùng</h3>
+              <p className="text-3xl font-bold">1,250</p>
+            </div>
+            
+            <div className="bg-purple-500 text-white rounded-lg p-6">
+              <h3 className="text-lg font-semibold mb-2">Sản phẩm</h3>
+              <p className="text-3xl font-bold">45</p>
+            </div>
+          </div>
 
-      {/* Đơn hàng gần đây */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold mb-4">Đơn hàng gần đây</h2>
-        <div className="overflow-x-auto">
-          <table className="min-w-full">
-            <thead>
-              <tr className="bg-gray-50">
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mã đơn</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Khách hàng</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tổng tiền</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap">#12345</td>
-                <td className="px-6 py-4 whitespace-nowrap">Nguyễn Văn A</td>
-                <td className="px-6 py-4 whitespace-nowrap">150.000đ</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                    Hoàn thành
-                  </span>
-                </td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap">#12346</td>
-                <td className="px-6 py-4 whitespace-nowrap">Trần Thị B</td>
-                <td className="px-6 py-4 whitespace-nowrap">200.000đ</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                    Đang xử lý
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          {/* Bảng đơn hàng gần đây */}
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold mb-4">Đơn hàng gần đây</h2>
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <table className="min-w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Khách hàng</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sản phẩm</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tổng tiền</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  <tr>
+                    <td className="px-6 py-4 whitespace-nowrap">#12345</td>
+                    <td className="px-6 py-4 whitespace-nowrap">Nguyễn Văn A</td>
+                    <td className="px-6 py-4 whitespace-nowrap">Cơm sườn, Trà sữa</td>
+                    <td className="px-6 py-4 whitespace-nowrap">85.000đ</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        Hoàn thành
+                      </span>
+                    </td>
+                  </tr>
+                  {/* Thêm các hàng khác tương tự */}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </main>
+    </LayoutManager>
   );
 };
 
