@@ -28,7 +28,6 @@ const CartPage = () => {
                 setLoading(true);
                 const cartItems = await CartItemService.getCartItems(token);
                 setCart(cartItems);
-                // Lấy note từ item đầu tiên nếu có
                 if (cartItems.length > 0 && cartItems[0].note) {
                     setCartNote(cartItems[0].note);
                 }
@@ -50,7 +49,6 @@ const CartPage = () => {
             return;
         }
 
-        // Nếu số lượng = 0, xóa sản phẩm khỏi giỏ hàng
         if (newQuantity === 0) {
             await handleDeleteItem(item);
             return;
@@ -62,7 +60,6 @@ const CartPage = () => {
         }
 
         try {
-            // Cập nhật state ngay lập tức để UI phản hồi nhanh
             setCart(prevCart => prevCart.map(cartItem => 
                 cartItem._id === item._id ? { ...cartItem, quantity: newQuantity } : cartItem
             ));
@@ -70,14 +67,12 @@ const CartPage = () => {
             setUpdatingItems(prev => ({ ...prev, [item._id]: true }));
             const updatedItem = await CartItemService.updateCartItem(item._id, { quantity: newQuantity }, token);
             
-            // Cập nhật lại state với dữ liệu từ server
             setCart(prevCart => prevCart.map(cartItem => 
                 cartItem._id === item._id ? updatedItem : cartItem
             ));
             
             toast.success(`Cập nhật số lượng "${item.menu_item?.name}" thành công!`);
         } catch (error: any) {
-            // Nếu có lỗi, khôi phục lại số lượng cũ
             setCart(prevCart => prevCart.map(cartItem => 
                 cartItem._id === item._id ? { ...cartItem, quantity: item.quantity } : cartItem
             ));
@@ -87,7 +82,7 @@ const CartPage = () => {
         }
     };
 
-    // Xử lý thay đổi số lượng từ input
+    // Handle quantity change from input
     const handleQuantityChange = (item: CartItem, value: string) => {
         const newQuantity = parseInt(value) || 0;
         handleUpdateQuantity(item, newQuantity);
@@ -99,7 +94,6 @@ const CartPage = () => {
             toast.error('Sản phẩm không tồn tại.');
             return;
         }
-
 
         try {
             setUpdatingItems(prev => ({ ...prev, [item._id]: true }));
@@ -137,7 +131,7 @@ const CartPage = () => {
         try {
             setLoading(true);
             const updatePromises = cart.map(item => 
-                CartItemService.updateCartItem(item._id, { note: cartNote }, token)
+                item._id ? CartItemService.updateCartItem(item._id, { note: cartNote }, token) : Promise.resolve()
             );
             await Promise.all(updatePromises);
             const updatedCart = await CartItemService.getCartItems(token);
@@ -157,12 +151,20 @@ const CartPage = () => {
             return;
         }
 
+        if (!token) {
+            toast.error('Vui lòng đăng nhập để thanh toán');
+            navigate('/login');
+            return;
+        }
+
         try {
-            // Cập nhật note cho tất cả sản phẩm trước khi thanh toán
+            setLoading(true);
             await updateAllItemsNote();
             navigate('/checkout');
         } catch (error: any) {
             toast.error(error.message || 'Không thể tiến hành thanh toán.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -218,7 +220,28 @@ const CartPage = () => {
         <Layout>
             <div className="container mx-auto px-4 py-8 max-w-6xl">
                 <ToastContainer position="top-right" autoClose={3000} />
-                <h2 className="text-3xl font-bold mb-6 text-gray-800">Giỏ hàng của bạn</h2>
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-3xl font-bold text-gray-800">Giỏ hàng của bạn</h2>
+                    <button
+                        onClick={handleCheckout}
+                        disabled={loading || cart.length === 0}
+                        className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                        {loading ? (
+                            <>
+                                <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+                                <span>Đang xử lý...</span>
+                            </>
+                        ) : (
+                            <>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                </svg>
+                                <span>Tiến hành thanh toán</span>
+                            </>
+                        )}
+                    </button>
+                </div>
                 
                 {cart.length === 0 ? (
                     <div className="text-center py-12 bg-white rounded-lg shadow-sm">
@@ -322,21 +345,6 @@ const CartPage = () => {
                                                 </svg>
                                             </button>
                                         </div>
-                                        
-                                        {/* Note - Mobile */}
-                                        <div className="col-span-12 mt-4 md:hidden">
-                                            <div className="text-sm font-medium text-gray-500 mb-1">Ghi chú:</div>
-                                            <input
-                                                type="text"
-                                                className="w-full text-sm border rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary"
-                                                value={item.note || ''}
-                                                onChange={() => {
-                                                    // This is a placeholder for the note update logic
-                                                }}
-                                                placeholder="Nhập ghi chú (nếu có)"
-                                                disabled={updatingItems[item._id]}
-                                            />
-                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -347,7 +355,6 @@ const CartPage = () => {
                             <h3 className="text-lg font-medium text-gray-900 mb-4">Tóm tắt đơn hàng</h3>
                             
                             <div className="space-y-3 mb-6">
-                                {/* Note for all items */}
                                 <div>
                                     <label htmlFor="cartNote" className="block text-sm font-medium text-gray-700 mb-1">Ghi chú đơn hàng</label>
                                     <textarea
@@ -379,17 +386,28 @@ const CartPage = () => {
                             <div className="space-y-4">
                                 <button
                                     onClick={handleCheckout}
-                                    className="w-full px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center gap-2"
+                                    disabled={loading || cart.length === 0}
+                                    className="w-full px-6 py-3 bg-teal-600 text-black rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                                    </svg>
-                                    Tiến hành thanh toán
+                                    {loading ? (
+                                        <>
+                                            <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+                                            <span>Đang xử lý...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                            </svg>
+                                            <span>Tiến hành thanh toán</span>
+                                        </>
+                                    )}
                                 </button>
                                 
                                 <button
                                     onClick={handleClearCart}
-                                    className="w-full px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                                    disabled={loading}
+                                    className="w-full px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

@@ -22,6 +22,7 @@ import ManagerMenuPage from './Pages/Manager/Menu/ManagerMenuPage';
 //pages User
 import HomePage from './Pages/HomePage';
 import CartPage from './Pages/CartPage';
+import CheckoutPage from './Pages/CheckoutPage';
 
 
 
@@ -89,6 +90,7 @@ function App() {
                   <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="cart" element={<CartPage />} />
+                    <Route path="checkout" element={<CheckoutPage />} />
                     {/*  các route user  */}
                   </Routes>
                 </div>

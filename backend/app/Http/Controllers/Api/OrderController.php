@@ -13,7 +13,7 @@ class OrderController extends Controller
 {
     public function index()
     {
-        $orders = Auth::user()->isAdmin()
+        $orders = Auth::user()->role === 'admin'
             ? Order::all()
             : Order::where('user_id', Auth::id())->get();
         return response()->json($orders);
@@ -23,10 +23,11 @@ class OrderController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'items' => 'required|array',
-            'items.*.menu_id' => 'required|exists:menu,_id',
+            'items.*.menu_id' => 'required|string|exists:menu_items,_id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.note' => 'string|nullable',
             'note' => 'string|nullable',
+            'total_price' => 'required|numeric|min:0'
         ]);
 
         if ($validator->fails()) {
@@ -40,6 +41,11 @@ class OrderController extends Controller
                 return response()->json(['error' => "Not enough stock for {$menuItem->name}"], 400);
             }
             $totalPrice += $menuItem->price * $item['quantity'];
+        }
+
+        // Verify total price
+        if ($totalPrice != $request->total_price) {
+            return response()->json(['error' => 'Invalid total price'], 400);
         }
 
         $order = Order::create([
@@ -63,7 +69,7 @@ class OrderController extends Controller
     public function show($id)
     {
         $order = Order::findOrFail($id);
-        if (Auth::user()->isAdmin() || $order->user_id == Auth::id()) {
+        if (Auth::user()->role === 'admin' || $order->user_id == Auth::id()) {
             return response()->json($order);
         }
         return response()->json(['error' => 'Unauthorized'], 403);
@@ -81,7 +87,7 @@ class OrderController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        if (!Auth::user()->isAdmin()) {
+        if (Auth::user()->role !== 'admin') {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 

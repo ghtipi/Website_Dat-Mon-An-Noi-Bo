@@ -124,9 +124,7 @@ Route::middleware('auth:api')->group(function () {
     });
 
     // ---------- Payments ----------
-    Route::get('/payments', [PaymentController::class, 'index']);
-    Route::post('/payments', [PaymentController::class, 'store']);
-    Route::get('/payments/{id}', [PaymentController::class, 'show']);
+    Route::post('/payments/{order}/pay', [PaymentController::class, 'pay']);
     Route::put('/payments/{id}', [PaymentController::class, 'update'])->middleware('role:admin');
 
     // ---------- Comments ----------
