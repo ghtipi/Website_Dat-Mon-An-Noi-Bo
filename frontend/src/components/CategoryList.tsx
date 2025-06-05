@@ -1,134 +1,188 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { MenuData, getMenusHomepage } from '../services/MenuServie';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Category, categoryService } from '../services/categoryService';
+import Tooltip from './Tooltip'; // Import tooltip component
 
-// Utility function to strip HTML tags and truncate text
-function stripHtmlAndTruncate(html: string, maxLength = 20) {
-    const tmp = document.createElement('div');
-    tmp.innerHTML = html;
-    const text = tmp.textContent || tmp.innerText || '';
-    return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
+function stripHtmlAndTruncate(html: string, maxLength: number): string {
+
+  const text = html.replace(/<[^>]*>?/gm, '');
+  if (text.length > maxLength) {
+    return text.slice(0, maxLength) + '...';
+  }
+  return text;
 }
 
-const MenuListHome = () => {
-    const [menus, setMenus] = useState<MenuData[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const navigate = useNavigate();
+const CategoryList: React.FC = () => {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchMenus = async () => {
-            try {
-                setLoading(true);
-                const token = localStorage.getItem('token') || '';
-                const data = await getMenusHomepage(token);
-                setMenus(data);
-                setError(null);
-            } catch (err) {
-                setError('Không thể tải danh sách món ăn.');
-            } finally {
-                setLoading(false);
-            }
+  // Tooltip state
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+  const [tooltipContent, setTooltipContent] = useState('');
+  const [tooltipX, setTooltipX] = useState(0);
+  const [tooltipY, setTooltipY] = useState(0);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoading(true);
+        const data = await categoryService.getAllCategories();
+        const allCategory: Category = {
+          id: 'all',
+          name: 'Tất cả',
+          slug: 'all',
+          image: '',
+          description: 'Xem tất cả các món ăn có sẵn',
         };
-
-        fetchMenus();
-    }, []);
-
-    const handleAddToCart = (e: React.MouseEvent, menu: MenuData) => {
-        e.stopPropagation();
-        console.log('Thêm vào giỏ hàng:', menu);
-        alert(`Đã thêm "${menu.name}" vào giỏ hàng!`);
+        setCategories([allCategory, ...data]);
+        setError(null);
+      } catch (err) {
+        setError('Không thể tải danh mục. Vui lòng thử lại sau.');
+      } finally {
+        setLoading(false);
+      }
     };
 
-    if (loading) {
-        return (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-                {[...Array(6)].map((_, index) => (
-                    <div key={index} className="bg-white rounded-lg shadow-sm h-80 animate-pulse">
-                        <div className="h-48 bg-gray-100 rounded-t-lg"></div>
-                        <div className="p-4 space-y-3">
-                            <div className="h-5 bg-gray-100 rounded w-3/4"></div>
-                            <div className="h-4 bg-gray-100 rounded w-1/2"></div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        );
-    }
+    fetchCategories();
+  }, []);
 
-    if (error) {
-        return (
-            <div className="flex items-center justify-center py-8 bg-red-50 rounded-lg">
-                <svg className="w-8 h-8 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="text-red-600">{error}</p>
-            </div>
-        );
-    }
-
+  if (loading) {
     return (
-        <div className="container mx-auto px-4 py-8">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
-                Danh Sách Món Ăn
-            </h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {menus.map((menu) => (
-                    <div
-                        key={menu.id}
-                        className="group bg-white rounded-lg shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md cursor-pointer"
-                        onClick={() => navigate(`/menu/${menu.slug}`)}
-                    >
-                        <div className="relative h-48">
-                            <img
-                                src={menu.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'}
-                                alt={menu.name}
-                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                            />
-                        </div>
-
-                        <div className="p-4">
-                            <div className="flex justify-between items-start mb-2">
-                                <h3 className="text-lg font-semibold text-gray-800 line-clamp-1" title={menu.name}>
-                                    {menu.name}
-                                </h3>
-                                <span className="bg-teal-100 text-teal-800 text-xs font-medium px-2 py-0.5 rounded">
-                                    {menu.price.toLocaleString()} ₫
-                                </span>
-                            </div>
-
-                            <div className="relative mb-3">
-                                <p className="text-gray-600 text-sm line-clamp-1 group-hover:hidden">
-                                    {menu.description ? stripHtmlAndTruncate(menu.description, 20) : 'Không có mô tả'}
-                                </p>
-                                <p className="text-gray-600 text-sm hidden group-hover:block line-clamp-3 transition-opacity duration-200">
-                                    {menu.description ? stripHtmlAndTruncate(menu.description, 100) : 'Không có mô tả'}
-                                </p>
-                            </div>
-
-                            <div className="flex justify-between items-center">
-                                <span className={`text-xs font-medium ${menu.stock ? 'text-green-600' : 'text-red-600'}`}>
-                                    {menu.stock ? 'Còn hàng' : 'Hết hàng'}
-                                </span>
-                                <button
-                                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                                        menu.stock
-                                            ? 'bg-teal-500 hover:bg-teal-600 text-white'
-                                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                    }`}
-                                    onClick={(e) => menu.stock && handleAddToCart(e, menu)}
-                                    disabled={!menu.stock}
-                                >
-                                    Thêm
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                ))}
+      <div className="p-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+          {[...Array(6)].map((_, index) => (
+            <div
+              key={index}
+              className="flex flex-col items-center p-4 rounded-2xl bg-gray-100 animate-pulse"
+            >
+              <div className="w-24 h-24 bg-gray-200 rounded-full mb-3"></div>
+              <div className="w-20 h-4 bg-gray-200 rounded-full"></div>
             </div>
+          ))}
         </div>
+      </div>
     );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 text-center">
+        <div className="inline-flex items-center px-4 py-2 bg-red-100 text-red-700 rounded-lg">
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          {error}
+        </div>
+      </div>
+    );
+  }
+
+  if (!categories || categories.length === 0) {
+    return (
+      <div className="p-6 text-center">
+        <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-700 rounded-lg">
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Không có danh mục nào
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative p-4 sm:p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">Danh mục món ăn</h2>
+        <Link
+          to="/categories"
+          className="flex items-center text-teal-600 hover:text-teal-800 font-medium transition-colors"
+        >
+          Xem tất cả
+          <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
+        {categories.map((category) => (
+          <Link
+            key={category.id}
+            to={`/menu/${category.slug}`}
+            className={`group relative flex flex-col items-center p-4 rounded-2xl transition-all duration-300 hover:shadow-lg overflow-hidden
+              ${category.slug === 'all' 
+                ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white shadow-md' 
+                : 'bg-white border border-gray-200 hover:border-teal-200'}`}
+             onMouseEnter={(e) => {
+                            setTooltipX(e.clientX);
+                            setTooltipY(e.clientY);
+                            setTooltipContent(
+                              category.description
+                                ? stripHtmlAndTruncate(category.description, 200)
+                                : 'Không có mô tả'
+                            );
+                            setTooltipVisible(true);
+                        }}
+            onMouseMove={(e) => {
+              setTooltipX(e.clientX);
+              setTooltipY(e.clientY);
+            }}
+            onMouseLeave={() => {
+              setTooltipVisible(false);
+              setTooltipContent('');
+            }}
+          >
+            <div className="relative z-10 mb-3">
+              {category.image ? (
+                <img
+                  src={category.image}
+                  alt={category.name}
+                  className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-full border-2 border-white shadow-md transition-transform duration-300 group-hover:scale-110"
+                />
+              ) : (
+                <div className={`w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center rounded-full border-2 shadow-md transition-transform duration-300 group-hover:scale-110
+                  ${category.slug === 'all' 
+                    ? 'border-white bg-teal-400' 
+                    : 'border-gray-100 bg-gray-50'}`}>
+                  <svg 
+                    className={`w-10 h-10 ${category.slug === 'all' ? 'text-white' : 'text-gray-400'}`}
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M4 6h16M4 12h16M4 18h16" 
+                    />
+                  </svg>
+                </div>
+              )}
+            </div>
+
+            <span className={`relative z-10 font-medium text-center text-sm sm:text-base transition-colors duration-300 ${
+              category.slug === 'all' 
+                ? 'text-white' 
+                : 'text-gray-700 group-hover:text-teal-600'
+            }`}>
+              {category.name}
+            </span>
+          </Link>
+        ))}
+      </div>
+
+      {/* Tooltip component */}
+      <Tooltip
+        x={tooltipX}
+        y={tooltipY}
+        content={tooltipContent}
+        visible={tooltipVisible}
+      />
+    </div>
+  );
 };
 
-export default MenuListHome;
+export default CategoryList;
