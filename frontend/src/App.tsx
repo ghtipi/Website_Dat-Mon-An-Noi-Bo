@@ -26,7 +26,7 @@ import ManagerMenuPage from './Pages/Manager/Menu/ManagerMenuPage';
 
 
 //pages User
-import HomePage from './Pages/User/HomePage';
+import HomePage from './Pages/HomePage';
 
 
 

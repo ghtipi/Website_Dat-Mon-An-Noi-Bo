@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Category, categoryService } from '../services/categoryService';
-import Tooltip from './Tooltip'; // Import tooltip component
+import Tooltip from './Tooltip';
 
 function stripHtmlAndTruncate(html: string, maxLength: number): string {
-
   const text = html.replace(/<[^>]*>?/gm, '');
   if (text.length > maxLength) {
     return text.slice(0, maxLength) + '...';
@@ -16,8 +15,6 @@ const CategoryList: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Tooltip state
   const [tooltipVisible, setTooltipVisible] = useState(false);
   const [tooltipContent, setTooltipContent] = useState('');
   const [tooltipX, setTooltipX] = useState(0);
@@ -49,15 +46,15 @@ const CategoryList: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="p-6">
+      <div className="p-6 bg-transparent">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
           {[...Array(6)].map((_, index) => (
             <div
               key={index}
-              className="flex flex-col items-center p-4 rounded-2xl bg-gray-100 animate-pulse"
+              className="flex flex-col items-center p-4 rounded-2xl bg-gray-100/80 animate-pulse backdrop-blur-sm"
             >
-              <div className="w-24 h-24 bg-gray-200 rounded-full mb-3"></div>
-              <div className="w-20 h-4 bg-gray-200 rounded-full"></div>
+              <div className="w-24 h-24 bg-gray-200/70 rounded-full mb-3"></div>
+              <div className="w-20 h-4 bg-gray-200/70 rounded-full"></div>
             </div>
           ))}
         </div>
@@ -67,8 +64,8 @@ const CategoryList: React.FC = () => {
 
   if (error) {
     return (
-      <div className="p-6 text-center">
-        <div className="inline-flex items-center px-4 py-2 bg-red-100 text-red-700 rounded-lg">
+      <div className="p-6 text-center bg-transparent">
+        <div className="inline-flex items-center px-4 py-2 bg-red-100/80 text-red-700 rounded-lg backdrop-blur-sm">
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
@@ -80,8 +77,8 @@ const CategoryList: React.FC = () => {
 
   if (!categories || categories.length === 0) {
     return (
-      <div className="p-6 text-center">
-        <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-700 rounded-lg">
+      <div className="p-6 text-center bg-transparent">
+        <div className="inline-flex items-center px-4 py-2 bg-blue-100/80 text-blue-700 rounded-lg backdrop-blur-sm">
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
@@ -92,20 +89,18 @@ const CategoryList: React.FC = () => {
   }
 
   return (
-    <div className="relative p-4 sm:p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Danh mục món ăn</h2>
+    <div className="relative p-4 sm:p-6 bg-transparent">
+      <div className="flex justify-end mb-6">
         <Link
-          to="/categories"
-          className="flex items-center text-teal-600 hover:text-teal-800 font-medium transition-colors"
+            to="/categories"
+            className="flex items-center text-teal-600 hover:text-teal-800 font-medium transition-colors"
         >
-          Xem tất cả
-          <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            Xem tất cả
+            <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
+            </svg>
         </Link>
-      </div>
-
+        </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
         {categories.map((category) => (
           <Link
@@ -114,17 +109,17 @@ const CategoryList: React.FC = () => {
             className={`group relative flex flex-col items-center p-4 rounded-2xl transition-all duration-300 hover:shadow-lg overflow-hidden
               ${category.slug === 'all' 
                 ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white shadow-md' 
-                : 'bg-white border border-gray-200 hover:border-teal-200'}`}
-             onMouseEnter={(e) => {
-                            setTooltipX(e.clientX);
-                            setTooltipY(e.clientY);
-                            setTooltipContent(
-                              category.description
-                                ? stripHtmlAndTruncate(category.description, 200)
-                                : 'Không có mô tả'
-                            );
-                            setTooltipVisible(true);
-                        }}
+                : 'bg-white/80 border border-gray-200/70 hover:border-teal-200 backdrop-blur-sm'}`}
+            onMouseEnter={(e) => {
+              setTooltipX(e.clientX);
+              setTooltipY(e.clientY);
+              setTooltipContent(
+                category.description
+                  ? stripHtmlAndTruncate(category.description, 200)
+                  : 'Không có mô tả'
+              );
+              setTooltipVisible(true);
+            }}
             onMouseMove={(e) => {
               setTooltipX(e.clientX);
               setTooltipY(e.clientY);
@@ -145,7 +140,7 @@ const CategoryList: React.FC = () => {
                 <div className={`w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center rounded-full border-2 shadow-md transition-transform duration-300 group-hover:scale-110
                   ${category.slug === 'all' 
                     ? 'border-white bg-teal-400' 
-                    : 'border-gray-100 bg-gray-50'}`}>
+                    : 'border-gray-100/70 bg-gray-50/70'}`}>
                   <svg 
                     className={`w-10 h-10 ${category.slug === 'all' ? 'text-white' : 'text-gray-400'}`}
                     fill="none" 
@@ -174,7 +169,6 @@ const CategoryList: React.FC = () => {
         ))}
       </div>
 
-      {/* Tooltip component */}
       <Tooltip
         x={tooltipX}
         y={tooltipY}
