@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 interface TooltipProps {
   x: number;
   y: number;
-  content: string;
+  content: React.ReactNode; // Change from string to React.ReactNode
   visible: boolean;
 }
 
@@ -11,18 +11,16 @@ const Tooltip: React.FC<TooltipProps> = ({ x, y, content, visible }) => {
   const [pos, setPos] = useState({ left: x, top: y });
 
   useEffect(() => {
-    const tooltipWidth = 300; 
-    const tooltipHeight = 150; 
+    const tooltipWidth = 300;
+    const tooltipHeight = 150;
     const padding = 10;
 
     let left = x + padding;
     let top = y + padding;
 
-    
     if (left + tooltipWidth > window.innerWidth) {
       left = x - tooltipWidth - padding;
     }
-    // Giới hạn chiều dọc tránh tràn xuống dưới
     if (top + tooltipHeight > window.innerHeight) {
       top = y - tooltipHeight - padding;
     }
