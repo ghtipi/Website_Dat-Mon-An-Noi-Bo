@@ -23,7 +23,7 @@ class MenuController extends Controller
         $MenuItem =MenuItem::raw(function ($collection) {
         return $collection->aggregate([
             ['$match' => ['status' => 'active']],
-            ['$sample' => ['size' => 4]],
+            ['$sample' => ['size' => 6]],
         ]);
     });
 

@@ -36,12 +36,12 @@ const Sidebar: React.FC = () => {
 
   return (
     <div
-      className={`h-screen text-black fixed left-0 top-0 shadow-lg transition-all duration-200 ease-in-out mt-16 ${
-        isExpanded ? 'w-64' : 'w-16'
-      } overflow-hidden bg-transparent backdrop-blur-sm`}
-      onMouseEnter={() => setIsExpanded(true)}
-      onMouseLeave={() => setIsExpanded(false)}
-    >
+  className={`h-screen text-black fixed left-0 top-0 shadow-lg transition-all duration-200 ease-in-out mt-16 ${
+    isExpanded ? 'w-64' : 'w-16'
+  } overflow-hidden bg-transparent backdrop-blur-sm z-50`}
+  onMouseEnter={() => setIsExpanded(true)}
+  onMouseLeave={() => setIsExpanded(false)}
+>
       <div className="p-4 flex flex-col h-full">
         
         

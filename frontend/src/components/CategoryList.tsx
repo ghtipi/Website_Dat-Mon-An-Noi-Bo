@@ -1,11 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Category, categoryService } from '../services/categoryService';
+import Tooltip from './Tooltip'; // Import tooltip component
+
+function stripHtmlAndTruncate(html: string, maxLength: number): string {
+
+  const text = html.replace(/<[^>]*>?/gm, '');
+  if (text.length > maxLength) {
+    return text.slice(0, maxLength) + '...';
+  }
+  return text;
+}
 
 const CategoryList: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Tooltip state
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+  const [tooltipContent, setTooltipContent] = useState('');
+  const [tooltipX, setTooltipX] = useState(0);
+  const [tooltipY, setTooltipY] = useState(0);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -16,7 +32,7 @@ const CategoryList: React.FC = () => {
           id: 'all',
           name: 'Tất cả',
           slug: 'all',
-          image: '', // Không có hình ảnh
+          image: '',
           description: 'Xem tất cả các món ăn có sẵn',
         };
         setCategories([allCategory, ...data]);
@@ -34,14 +50,14 @@ const CategoryList: React.FC = () => {
   if (loading) {
     return (
       <div className="p-6">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
           {[...Array(6)].map((_, index) => (
             <div
               key={index}
-              className="flex flex-col items-center p-4 rounded-xl bg-gray-100/50 backdrop-blur-sm animate-pulse"
+              className="flex flex-col items-center p-4 rounded-2xl bg-gray-100 animate-pulse"
             >
-              <div className="w-20 h-20 bg-gray-300 rounded-full mb-2"></div>
-              <div className="w-16 h-4 bg-gray-300 rounded"></div>
+              <div className="w-24 h-24 bg-gray-200 rounded-full mb-3"></div>
+              <div className="w-20 h-4 bg-gray-200 rounded-full"></div>
             </div>
           ))}
         </div>
@@ -51,8 +67,11 @@ const CategoryList: React.FC = () => {
 
   if (error) {
     return (
-      <div className="p-6">
-        <div className="text-red-500 text-center py-4 text-lg font-medium">
+      <div className="p-6 text-center">
+        <div className="inline-flex items-center px-4 py-2 bg-red-100 text-red-700 rounded-lg">
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
           {error}
         </div>
       </div>
@@ -61,8 +80,11 @@ const CategoryList: React.FC = () => {
 
   if (!categories || categories.length === 0) {
     return (
-      <div className="p-6">
-        <div className="text-gray-500 text-center py-4 text-lg font-medium">
+      <div className="p-6 text-center">
+        <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-700 rounded-lg">
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
           Không có danh mục nào
         </div>
       </div>
@@ -70,69 +92,96 @@ const CategoryList: React.FC = () => {
   }
 
   return (
-    <>
-      <div className="flex justify-end items-center mb-4">
+    <div className="relative p-4 sm:p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">Danh mục món ăn</h2>
         <Link
           to="/categories"
-          className="text-sm text-teal-600 hover:underline font-medium transition-all duration-200"
+          className="flex items-center text-teal-600 hover:text-teal-800 font-medium transition-colors"
         >
           Xem tất cả
+          <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
         </Link>
       </div>
 
-      {/* Grid danh mục */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 bg-transparent">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
         {categories.map((category) => (
           <Link
             key={category.id}
             to={`/menu/${category.slug}`}
-            className={`relative flex flex-col items-center p-4 rounded-xl border shadow-lg hover:shadow-2xl transition-all duration-300 group 
-              ${category.slug === 'all' ? 'bg-teal-500/80 text-white border-teal-600' : 'bg-white/30 backdrop-blur-md border-gray-300'}`}
+            className={`group relative flex flex-col items-center p-4 rounded-2xl transition-all duration-300 hover:shadow-lg overflow-hidden
+              ${category.slug === 'all' 
+                ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white shadow-md' 
+                : 'bg-white border border-gray-200 hover:border-teal-200'}`}
+             onMouseEnter={(e) => {
+                            setTooltipX(e.clientX);
+                            setTooltipY(e.clientY);
+                            setTooltipContent(
+                              category.description
+                                ? stripHtmlAndTruncate(category.description, 200)
+                                : 'Không có mô tả'
+                            );
+                            setTooltipVisible(true);
+                        }}
+            onMouseMove={(e) => {
+              setTooltipX(e.clientX);
+              setTooltipY(e.clientY);
+            }}
+            onMouseLeave={() => {
+              setTooltipVisible(false);
+              setTooltipContent('');
+            }}
           >
-            {/* Xử lý khi không có hình ảnh (trường hợp "Tất cả") */}
-            {category.image ? (
-              <img
-                src={category.image}
-                alt={category.name}
-                className="w-20 h-20 object-cover rounded-full mb-2 transition-transform duration-300 group-hover:scale-110"
-              />
-            ) : (
-              <div className="w-20 h-20 flex items-center justify-center bg-white/20 rounded-full mb-2 transition-transform duration-300 group-hover:scale-110">
-                <svg 
-                  className="w-10 h-10" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M4 6h16M4 12h16M4 18h16" 
-                  />
-                </svg>
-              </div>
-            )}
-            
-            {/* Category Name */}
-            <span className={`font-medium text-center text-sm transition-colors duration-300 ${
-              category.slug === 'all' ? 'text-white' : 'group-hover:text-teal-600'
+            <div className="relative z-10 mb-3">
+              {category.image ? (
+                <img
+                  src={category.image}
+                  alt={category.name}
+                  className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-full border-2 border-white shadow-md transition-transform duration-300 group-hover:scale-110"
+                />
+              ) : (
+                <div className={`w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center rounded-full border-2 shadow-md transition-transform duration-300 group-hover:scale-110
+                  ${category.slug === 'all' 
+                    ? 'border-white bg-teal-400' 
+                    : 'border-gray-100 bg-gray-50'}`}>
+                  <svg 
+                    className={`w-10 h-10 ${category.slug === 'all' ? 'text-white' : 'text-gray-400'}`}
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M4 6h16M4 12h16M4 18h16" 
+                    />
+                  </svg>
+                </div>
+              )}
+            </div>
+
+            <span className={`relative z-10 font-medium text-center text-sm sm:text-base transition-colors duration-300 ${
+              category.slug === 'all' 
+                ? 'text-white' 
+                : 'text-gray-700 group-hover:text-teal-600'
             }`}>
               {category.name}
             </span>
-            
-            {/* Description on Hover */}
-            {category.description && (
-              <div className={`absolute top-full mt-2 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 ${
-                category.slug === 'all' ? 'bg-white text-teal-800' : 'bg-gray-800 text-white'
-              }`}>
-                <div dangerouslySetInnerHTML={{ __html: category.description }} />
-              </div>
-            )}
           </Link>
         ))}
       </div>
-    </>
+
+      {/* Tooltip component */}
+      <Tooltip
+        x={tooltipX}
+        y={tooltipY}
+        content={tooltipContent}
+        visible={tooltipVisible}
+      />
+    </div>
   );
 };
 
