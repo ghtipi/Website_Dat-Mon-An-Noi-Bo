@@ -9,7 +9,7 @@ const Header = () => {
   const [hoveringAvatar, setHoveringAvatar] = useState(false);
   const [hoveringMenu, setHoveringMenu] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const hideMenuTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hideMenuTimeout = useRef<ReturnType<typeof setTimeout> | null>(null); 
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -17,7 +17,6 @@ const Header = () => {
 
   const isOnAdminPage = location.pathname.startsWith('/admin');
   const isLoggedIn = !!user;
-
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +40,6 @@ const Header = () => {
 
   const getDisplayName = () => {
     return user?.name || 'User';
-    
   };
 
   const getPlaceholderText = () => {
@@ -53,9 +51,7 @@ const Header = () => {
   const sreachPlaceholder = useTypingEffect({
     text: getPlaceholderText(),
     active: searchQuery === '',
-    
   });
-
 
   const clearHideTimeout = () => {
     if (hideMenuTimeout.current) {
@@ -142,47 +138,71 @@ const Header = () => {
             </div>
           </form>
 
-          {/* User Menu hoặc Đăng nhập */}
-          <div className="relative">
-            {isLoggedIn ? (
-              <>
-                <button
-                  onMouseEnter={onAvatarMouseEnter}
-                  onMouseLeave={onAvatarMouseLeave}
-                  className="group flex items-center space-x-2 text-gray-700 hover:text-teal-600 focus:outline-none"
-                >
-                  <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center">
-                    <span className="text-teal-600 font-semibold">
-                      {getInitials(user?.name)}
-                    </span>
-                  </div>
-                  <div className="hidden md:block text-left leading-tight">
-                    <div className="font-medium text-gray-800">
-                      {getDisplayName()}
-                    </div>
-                    <div className="text-sm text-gray-500">{user?.role}</div>
-                  </div>
-                </button>
+          {/* Cart Icon and User Menu/Login */}
+          <div className="flex items-center space-x-4">
+            {/* Cart Icon */}
+            <Link
+              to="/cart"
+              className="text-gray-500 hover:text-teal-600 transition"
+              title="Giỏ hàng"
+            >
+              <svg
+                className="w-8 h-8"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+            </Link>
 
-                {showUserMenu && (
-                  <div
-                    onMouseEnter={onMenuMouseEnter}
-                    onMouseLeave={onMenuMouseLeave}
-                    className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50"
+            {/* User Menu hoặc Đăng nhập */}
+            <div className="relative">
+              {isLoggedIn ? (
+                <>
+                  <button
+                    onMouseEnter={onAvatarMouseEnter}
+                    onMouseLeave={onAvatarMouseLeave}
+                    className="group flex items-center space-x-2 text-gray-700 hover:text-teal-600 focus:outline-none"
                   >
-                    <div className="px-4 py-2 border-b border-gray-100">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {user?.name}
-                      </p>
-                      <p
-                        className="text-sm text-gray-500 truncate max-w-[200px]"
-                        title={user?.email}
-                      >
-                        {user?.email}
-                      </p>
+                    <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center">
+                      <span className="text-teal-600 font-semibold">
+                        {getInitials(user?.name)}
+                      </span>
                     </div>
+                    <div className="hidden md:block text-left leading-tight">
+                      <div className="font-medium text-gray-800">
+                        {getDisplayName()}
+                      </div>
+                      <div className="text-sm text-gray-500">{user?.role}</div>
+                    </div>
+                  </button>
 
-                    {(user?.role === 'admin' || user?.role === 'manager') && (
+                  {showUserMenu && (
+                    <div
+                      onMouseEnter={onMenuMouseEnter}
+                      onMouseLeave={onMenuMouseLeave}
+                      className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50"
+                    >
+                      <div className="px-4 py-2 border-b border-gray-100">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {user?.name}
+                        </p>
+                        <p
+                          className="text-sm text-gray-500 truncate max-w-[200px]"
+                          title={user?.email}
+                        >
+                          {user?.email}
+                        </p>
+                      </div>
+
+                      {(user?.role === 'admin' || user?.role === 'manager') && (
                         <Link
                           to={
                             isOnAdminPage
@@ -197,35 +217,36 @@ const Header = () => {
                         </Link>
                       )}
 
-                    <Link
-                      to="/profile"
-                      className="block px-4 py-2 text-gray-700 hover:bg-teal-100"
-                    >
-                      Trang cá nhân
-                    </Link>
-                    <Link
-                      to="/orders"
-                      className="block px-4 py-2 text-gray-700 hover:bg-teal-100"
-                    >
-                      Đơn hàng của tôi
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-100"
-                    >
-                      Đăng xuất
-                    </button>
-                  </div>
-                )}
-              </>
-            ) : (
-              <Link
-                to="/login"
-                className="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition"
-              >
-                Đăng nhập
-              </Link>
-            )}
+                      <Link
+                        to="/profile"
+                        className="block px-4 py-2 text-gray-700 hover:bg-teal-100"
+                      >
+                        Trang cá nhân
+                      </Link>
+                      <Link
+                        to="/orders"
+                        className="block px-4 py-2 text-gray-700 hover:bg-teal-100"
+                      >
+                        Đơn hàng của tôi
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-100"
+                      >
+                        Đăng xuất
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <Link
+                  to="/login"
+                  className="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition"
+                >
+                  Đăng nhập
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </div>

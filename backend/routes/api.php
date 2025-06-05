@@ -15,7 +15,8 @@ use App\Http\Controllers\Api\{
     PosterController,
     CommentController,
     ImageController,
-    UserController
+    UserController,
+    CartItemController
 };
 
 // ======================
@@ -134,6 +135,13 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/comments', [CommentController::class, 'store']);
     Route::put('/comments/{id}', [CommentController::class, 'update']);
     Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
+
+    // ---------- Cart ----------
+    Route::get('/cart', [CartItemController::class, 'index']); 
+    Route::post('/cart', [CartItemController::class, 'store']);
+    Route::put('/cart/{id}', [CartItemController::class, 'update']);
+    Route::delete('/cart/{id}', [CartItemController::class, 'destroy']);
+    Route::delete('/cart', [CartItemController::class, 'clear']);
 
     // ---------- Image ----------
     Route::delete('/images', [ImageController::class, 'deleteImage'])->middleware('role:admin');

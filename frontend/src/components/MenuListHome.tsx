@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MenuData, getMenusHomepage } from '../services/MenuServie';
-import Tooltip from './Tooltip'; // Giả sử file Tooltip nằm cùng thư mục
+import CartItemService from '../services/CartItemService';
+import Tooltip from './Tooltip';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function stripHtmlAndTruncate(html: string, maxLength = 20) {
     const tmp = document.createElement('div');
@@ -15,7 +18,7 @@ const MenuListHome = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [hoveredMenu, setHoveredMenu] = useState<MenuData | null>(null);
-    const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 }); // State lưu vị trí chuột
+    const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 
     const navigate = useNavigate();
 
@@ -24,11 +27,12 @@ const MenuListHome = () => {
             try {
                 setLoading(true);
                 const token = localStorage.getItem('token') || '';
+                if (!token) throw new Error('Không tìm thấy token. Vui lòng đăng nhập.');
                 const data = await getMenusHomepage(token);
                 setMenus(data);
                 setError(null);
-            } catch (err) {
-                setError('Không thể tải danh sách món ăn.');
+            } catch (err: any) {
+                setError('Không thể tải danh sách món ăn: ' + (err.message || 'Lỗi không xác định'));
             } finally {
                 setLoading(false);
             }
@@ -37,13 +41,41 @@ const MenuListHome = () => {
         fetchMenus();
     }, []);
 
-    const handleAddToCart = (e: React.MouseEvent, menu: MenuData) => {
+    const handleAddToCart = async (e: React.MouseEvent, menu: MenuData) => {
         e.stopPropagation();
-        alert(`Đã thêm "${menu.name}" vào giỏ hàng!`);
+        try {
+            const token = localStorage.getItem('token') || '';
+            if (!token) {
+                navigate('/login');
+                return;
+            }
+            if (!menu.id) {
+                throw new Error('menu_id không hợp lệ.');
+            }
+
+            const cartItem = {
+                menu_id: menu.id,
+                quantity: 1,
+                note: '',
+            };
+
+             await CartItemService.addToCart(cartItem, token);
+            toast.success(`Đã thêm "${menu.name}" vào giỏ hàng!`);
+        } catch (error: any) {
+            console.error('Lỗi khi thêm vào giỏ:', error);
+            if (error.response?.data) {
+                const errorMessage = error.response.data.errors?.menu_id?.[0] ||
+                                    error.response.data.errors?.quantity?.[0] ||
+                                    error.response.data.message || 
+                                    'Dữ liệu không hợp lệ.';
+                toast.error(`Không thể thêm vào giỏ hàng: ${errorMessage}`);
+            } else {
+                toast.error(`Lỗi: ${error.message || 'Không thể kết nối tới server.'}`);
+            }
+        }
     };
 
     const handleMouseMove = (e: React.MouseEvent) => {
-        // Cập nhật vị trí chuột
         setTooltipPos({ x: e.clientX, y: e.clientY });
     };
 
@@ -81,7 +113,7 @@ const MenuListHome = () => {
                         onClick={() => navigate(`/menu/${menu.slug}`)}
                         onMouseEnter={() => setHoveredMenu(menu)}
                         onMouseLeave={() => setHoveredMenu(null)}
-                        onMouseMove={handleMouseMove} // Lắng nghe sự kiện di chuột
+                        onMouseMove={handleMouseMove}
                     >
                         <div className="relative h-48">
                             <img
@@ -128,7 +160,6 @@ const MenuListHome = () => {
                 ))}
             </div>
 
-            {/* Tích hợp Tooltip */}
             {hoveredMenu && (
                 <Tooltip
                     x={tooltipPos.x}

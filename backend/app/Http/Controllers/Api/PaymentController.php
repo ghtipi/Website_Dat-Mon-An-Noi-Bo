@@ -2,77 +2,36 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\Payment;
-use App\Models\Order;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\Order;
+use App\Models\Payment;
+use Illuminate\Support\Facades\Auth;
 
 class PaymentController extends Controller
 {
-    public function index()
+    public function pay(Request $request, $orderId)
     {
-        $payments = Auth::user()->isAdmin()
-            ? Payment::all()
-            : Payment::where('user_id', Auth::id())->get();
-        return response()->json($payments);
-    }
+        $order = Order::findOrFail($orderId);
 
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'order_id' => 'required|exists:orders,_id',
-            'amount' => 'required|numeric|min:0',
-            'payment_method' => 'required|in:cash,card,online',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $order = Order::findOrFail($request->order_id);
-        if (!Auth::user()->isAdmin() && $order->user_id != Auth::id()) {
+        if ($order->user_id != Auth::id()) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
+
+        $request->validate([
+            'method' => 'required|string|in:cash,card,bank_transfer'
+        ]);
 
         $payment = Payment::create([
-            'order_id' => $request->order_id,
-            'user_id' => $order->user_id,
-            'amount' => $request->amount,
-            'status' => 'pending',
-            'payment_method' => $request->payment_method,
-            'payment_date' => now(),
+            'order_id' => $orderId,
+            'amount' => $order->total_price,
+            'method' => $request->method,
+            'status' => 'paid',
+            'paid_at' => now(),
         ]);
 
-        return response()->json($payment, 201);
-    }
+        $order->update(['status' => 'confirmed']);
 
-    public function show($id)
-    {
-        $payment = Payment::findOrFail($id);
-        if (Auth::user()->isAdmin() || $payment->user_id == Auth::id()) {
-            return response()->json($payment);
-        }
-        return response()->json(['error' => 'Unauthorized'], 403);
-    }
-
-    public function update(Request $request, $id)
-    {
-        $payment = Payment::findOrFail($id);
-        $validator = Validator::make($request->all(), [
-            'status' => 'in:pending,completed,failed',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        if (!Auth::user()->isAdmin()) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-
-        $payment->update($request->only(['status']));
-        return response()->json($payment);
+        return response()->json(['message' => 'Payment successful', 'payment' => $payment]);
     }
 }

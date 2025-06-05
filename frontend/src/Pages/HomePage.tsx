@@ -121,7 +121,7 @@ const HomePage = () => {
                 <h3 className="text-xl font-semibold mb-3 text-gray-800">Theo Dõi Đơn Hàng</h3>
                 <p className="text-gray-600 text-sm mb-4">Kiểm tra trạng thái đơn hàng của bạn.</p>
                 <Link
-                  to="/track-order"
+                  to="/cart"
                   className="inline-flex items-center text-teal-600 hover:text-teal-700 text-sm font-medium group"
                 >
                   Theo dõi ngay
@@ -134,50 +134,42 @@ const HomePage = () => {
           </section>
 
           {/* Contact Section with gradient background */}
-          <section className="bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl shadow-lg overflow-hidden">
-            <div className="p-8 text-white">
-              <h2 className="text-3xl font-bold mb-6">Liên Hệ Với Chúng Tôi</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="bg-white/10 p-6 rounded-lg backdrop-blur-sm">
-                  <h3 className="text-xl font-semibold mb-4 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    Địa Chỉ
-                  </h3>
-                  <p className="text-white/90">123 Đường ABC, Quận XYZ, TP. HCM</p>
-                  <div className="mt-4">
-                    <iframe 
-                      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.126365068426!2d106.7132623152606!3d10.80183436170996!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x317528a459cb43ab%3A0x6c3d29d370b52a7e!2sHo%20Chi%20Minh%20City%20University%20of%20Technology!5e0!3m2!1sen!2s!4v1620000000000!5m2!1sen!2s" 
-                      width="100%" 
-                      height="150" 
-                      style={{border:0}} 
-                      allowFullScreen={true} 
-                      loading="lazy"
-                      className="rounded-lg"
-                    ></iframe>
-                  </div>
-                </div>
-                <div className="bg-white/10 p-6 rounded-lg backdrop-blur-sm">
-                  <h3 className="text-xl font-semibold mb-4 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                    Liên Hệ
-                  </h3>
-                  <p className="text-white/90 mb-2">Email: contact@example.com</p>
-                  <p className="text-white/90 mb-4">Điện thoại: (012) 345-6789</p>
-                  
-                  <h4 className="text-lg font-medium mt-6 mb-3">Giờ mở cửa</h4>
-                  <div className="space-y-2">
-                    <p className="text-white/90 text-sm">Thứ 2 - Thứ 6: 8:00 - 22:00</p>
-                    <p className="text-white/90 text-sm">Thứ 7 - CN: 9:00 - 23:00</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
+<section className="bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl shadow-lg overflow-hidden">
+  <div className="p-8 text-white">
+    <h2 className="text-3xl font-bold mb-6">Liên Hệ Với Chúng Tôi</h2>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {/* Địa chỉ */}
+      <div className="bg-white/10 p-6 rounded-lg backdrop-blur-sm">
+        <h3 className="text-xl font-semibold mb-4 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          Địa Chỉ
+        </h3>
+        <p className="text-white/90">123 Đường ABC, Quận XYZ, TP. HCM</p>
+      </div>
+
+      {/* Thông tin liên hệ */}
+      <div className="bg-white/10 p-6 rounded-lg backdrop-blur-sm">
+        <h3 className="text-xl font-semibold mb-4 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+          </svg>
+          Liên Hệ
+        </h3>
+        <p className="text-white/90 mb-2">Email: contact@example.com</p>
+        <p className="text-white/90 mb-4">Điện thoại: (012) 345-6789</p>
+
+        <h4 className="text-lg font-medium mt-6 mb-3">Giờ mở cửa</h4>
+        <div className="space-y-2">
+          <p className="text-white/90 text-sm">Thứ 2 - Thứ 6: 8:00 - 22:00</p>
+          <p className="text-white/90 text-sm">Thứ 7 - CN: 9:00 - 23:00</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
         </div>
 
         {/* Sidebar - Takes 25% on desktop, hidden on mobile unless toggled */}

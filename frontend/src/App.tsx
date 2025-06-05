@@ -1,12 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-//layout
-import Header from './components/Layout/Header';
-import HeaderAdmin from './components/Layout/HeaderAdmin';
-import HeaderManager from './components/Layout/HeaderManager';
-import UserSidebar from './components/Layout/Sidebar';
-import AdminSidebar from './components/Layout/SidebarAdmin';
-import ManagerSidebar from './components/Layout/SidebarManager';
+
 
 
 import ProtectedRoute from './components/ProtectedRoute';
@@ -27,6 +21,7 @@ import ManagerMenuPage from './Pages/Manager/Menu/ManagerMenuPage';
 
 //pages User
 import HomePage from './Pages/HomePage';
+import CartPage from './Pages/CartPage';
 
 
 
@@ -45,8 +40,7 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <div className="flex">
-                <HeaderAdmin />
-                <AdminSidebar />
+
                 <div className="flex-1">
                   <Routes>
                     <Route path="/" element={<AdminDashboard />} />
@@ -70,8 +64,7 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['manager']}>
               <div className="flex">
-                <HeaderManager />
-                <ManagerSidebar />
+
                 <div className="flex-1">
                   <Routes>
                     <Route path="/" element={<ManagerDashboard />} />
@@ -87,14 +80,15 @@ function App() {
 
         {/* Protected User Routes */}
         <Route
-          path="/user/*"
-          element={
-            <ProtectedRoute allowedRoles={['user']}>
+          path="/*"
+          element={ 
+            <ProtectedRoute allowedRoles={['user', 'admin', 'manager']}>
               <div className="flex">
-                <Header />
-                <UserSidebar />
+
                 <div className="flex-1">
                   <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="cart" element={<CartPage />} />
                     {/*  các route user  */}
                   </Routes>
                 </div>
