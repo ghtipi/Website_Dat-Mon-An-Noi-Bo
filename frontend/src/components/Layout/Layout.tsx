@@ -14,7 +14,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="min-h-screen bg-gray-100 bg-cover bg-center" style={{ backgroundImage: "url('/src/assets/images/background.png')" }}>
       <Header />
       <Sidebar />
-      <div className="ml-8 p-8 pt-6">
+      <div className="ml-8 p-8 pt-20">
         
         {children}
       </div>

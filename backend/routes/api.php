@@ -26,7 +26,10 @@ Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/categories/{id}', [CategoryController::class, 'show']);
 
 Route::get('/menu', [MenuController::class, 'index']);
+Route::get('/menu/random', [MenuController::class, 'randomItems']);
 Route::get('/ratings', [RatingController::class, 'index']);
+
+Route::get('/posters', [PosterController::class, 'index']);
 
 // ======================
 // Auth APIs
@@ -135,7 +138,6 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('/images', [ImageController::class, 'deleteImage'])->middleware('role:admin');
 
     // ---------- Posters ----------
-    Route::get('/posters', [PosterController::class, 'index']);
     Route::get('/posters/{id}', [PosterController::class, 'show']);
     Route::middleware('role:admin')->group(function () {
         Route::post('/posters', [PosterController::class, 'store']);
