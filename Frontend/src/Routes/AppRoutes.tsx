@@ -7,6 +7,8 @@ import History from "../pages/History";
 import Voucher from "../pages/Voucher";
 import Settings from "../pages/SettingsPage";
 import Cart from "../pages/Cart";
+import UserProfile from "../pages/UserProfile";
+import Favorites from "../pages/Favorites";
 
 const AppRoutes: React.FC = () => (
   <Routes>
@@ -17,6 +19,8 @@ const AppRoutes: React.FC = () => (
     <Route path="/voucher" element={<Voucher />} />
     <Route path="/setting" element={<Settings />} />
     <Route path="/cart" element={<Cart />} />
+    <Route path="/profile" element={<UserProfile />} />
+    <Route path="/favorites" element={<Favorites />} />
   </Routes>
 );
 

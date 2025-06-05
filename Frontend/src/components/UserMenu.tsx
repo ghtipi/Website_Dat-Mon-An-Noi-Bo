@@ -1,31 +1,52 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface UserMenuProps {
   user?: {
     name: string;
     avatar?: string;
-    // thêm các thông tin khác nếu có
   };
 }
 
 const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
-  // Đóng menu khi click bên ngoài
+  // Đóng menu khi click bên ngoài hoặc scroll
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
+    
+    const handleScroll = () => {
+      setIsOpen(false);
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
+  };
+
+  const handleLogout = () => {
+    const confirmLogout = window.confirm("Bạn có chắc chắn muốn đăng xuất?");
+    if (confirmLogout) {
+      setIsOpen(false);
+      localStorage.clear();
+      navigate("/login");
+    }
   };
 
   return (
@@ -41,6 +62,8 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
             src={user.avatar}
             alt={user.name}
             className="w-8 h-8 rounded-full object-cover"
+            width={32}
+            height={32}
           />
         ) : (
           <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
@@ -57,9 +80,8 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
         ></i>
       </button>
 
-      {/* Dropdown menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-50 border border-gray-100">
+        <div className="absolute right-0 mt-2 w-48 md:w-56 bg-white rounded-md shadow-lg z-50 border border-gray-100">
           <div className="px-4 py-3 border-b border-gray-100">
             <p className="text-xs text-gray-500">Đã đăng nhập với</p>
             <p className="text-sm font-medium text-gray-900 truncate">
@@ -70,33 +92,30 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
             <li>
               <Link
                 to="/profile"
-                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100"
                 onClick={() => setIsOpen(false)}
               >
-                <i className="bi bi-person mr-2"></i>
-                Trang cá nhân
+                <i className="bi bi-person mr-3 w-5 text-center"></i>
+                <span>Trang cá nhân</span>
               </Link>
             </li>
             <li>
               <Link
                 to="/cart"
-                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100"
                 onClick={() => setIsOpen(false)}
               >
-                <i className="bi bi-cart3 mr-2"></i>
-                Giỏ hàng
+                <i className="bi bi-cart3 mr-3 w-5 text-center"></i>
+                <span>Giỏ hàng</span>
               </Link>
             </li>
-            <li className="border-t border-gray-100 mt-1">
+            <li className="border-t border-gray-100">
               <button
-                onClick={() => {
-                  alert("Đăng xuất");
-                  setIsOpen(false);
-                }}
-                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
+                onClick={handleLogout}
+                className="w-full flex items-center px-4 py-3 text-sm text-red-600 hover:bg-gray-50 active:bg-gray-100 text-left"
               >
-                <i className="bi bi-box-arrow-right mr-2"></i>
-                Đăng xuất
+                <i className="bi bi-box-arrow-right mr-3 w-5 text-center"></i>
+                <span>Đăng xuất</span>
               </button>
             </li>
           </ul>

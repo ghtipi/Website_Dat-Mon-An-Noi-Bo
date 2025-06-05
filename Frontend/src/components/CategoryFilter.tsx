@@ -15,17 +15,18 @@ const categories: Category[] = [
 ];
 
 const CategoryFilter = () => (
-  <div className="flex flex-wrap gap-2 mb-6">
-    {categories.map(({ label, active }, i) => (
-      <div
-        key={i}
-        className={`flex items-center px-4 py-2 rounded-full border ${
-          active ? "bg-blue-500 text-white" : "bg-white text-gray-700"
-        }`}
-      >
-        {label}
-      </div>
-    ))}
+  <div className="overflow-x-auto w-full mb-6">
+    <div className="flex gap-2 sm:gap-3 md:gap-4 w-max sm:w-full flex-nowrap sm:flex-wrap">
+      {categories.map(({ label, active }, i) => (
+        <button
+          key={i}
+          className={`whitespace-nowrap px-4 py-2 rounded-full border text-sm sm:text-base transition duration-200
+            ${active ? "bg-blue-500 text-white" : "bg-white text-gray-700 hover:bg-gray-100"}`}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
   </div>
 );
 

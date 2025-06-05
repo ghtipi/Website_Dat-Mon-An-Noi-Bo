@@ -1,5 +1,5 @@
 import React from "react";
-import bgImage from "../assets/backgroundv2.png"; // đường dẫn đến ảnh của bạn
+import bgImage from "../assets/backgroundv2.png";
 
 interface BackgroundProps {
   children: React.ReactNode;
@@ -9,10 +9,14 @@ interface BackgroundProps {
 const Background: React.FC<BackgroundProps> = ({ children, className = "" }) => {
   return (
     <div
-      className={`min-h-screen w-full bg-cover bg-center p-4 ${className}`}
-      style={{ backgroundImage: `url(${bgImage})` }}
+      className={`min-h-screen w-full bg-cover bg-center bg-no-repeat px-4 py-8 sm:px-6 md:px-10 lg:px-20 ${className}`}
+      style={{
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
     >
-      {children}
+      <div className="max-w-screen-xl mx-auto w-full">{children}</div>
     </div>
   );
 };
