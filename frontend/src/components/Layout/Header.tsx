@@ -1,30 +1,59 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import useTypingEffect from '../../hooks/useTypingEffect';
 import TimeInfo from '../../components/TimeInfo';
 import { useAuth } from '../../contexts/AuthContext';
+import CartItemService from '../../services/CartItemService';
+import { useCart } from '../../contexts/CartContext';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [hoveringAvatar, setHoveringAvatar] = useState(false);
   const [hoveringMenu, setHoveringMenu] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isCartOpen] = useState(false);
   const hideMenuTimeout = useRef<ReturnType<typeof setTimeout> | null>(null); 
 
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { cartItemsCount: cartContextItemsCount } = useCart();
+  const token = localStorage.getItem('token') || '';
 
   const isOnAdminPage = location.pathname.startsWith('/admin');
   const isLoggedIn = !!user;
 
-  const handleSearch = (e: React.FormEvent) => {
+  const fetchCartItems = async () => {
+    try {
+      const items = await CartItemService.getCartItems(token);
+      return items;
+    } catch (error) {
+      console.error('Error fetching cart items:', error);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    if (isCartOpen) {
+      fetchCartItems();
+    }
+  }, [isCartOpen]);
+
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log('Searching for:', searchQuery);
+    const form = e.currentTarget;
+    const searchInput = form.querySelector('input[name="search"]') as HTMLInputElement;
+    if (searchInput.value.trim()) {
+      navigate(`/menu?search=${encodeURIComponent(searchInput.value.trim())}`);
+    }
   };
 
   const handleLogout = () => {
     logout();
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     navigate('/login');
   };
 
@@ -143,7 +172,7 @@ const Header = () => {
             {/* Cart Icon */}
             <Link
               to="/cart"
-              className="text-gray-500 hover:text-teal-600 transition"
+              className="text-gray-500 hover:text-teal-600 transition relative"
               title="Giỏ hàng"
             >
               <svg
@@ -160,6 +189,11 @@ const Header = () => {
                   d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
                 />
               </svg>
+              {cartContextItemsCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-teal-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartContextItemsCount}
+                </span>
+              )}
             </Link>
 
             {/* User Menu hoặc Đăng nhập */}
@@ -250,6 +284,7 @@ const Header = () => {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </header>
   );
 };

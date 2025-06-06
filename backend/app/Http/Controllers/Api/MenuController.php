@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Models\MenuItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Controller; 
 
 class MenuController extends Controller
 {
@@ -17,17 +17,18 @@ class MenuController extends Controller
         $items = $query->get();
         return response()->json($items);
     }
+
     // Người dùng - xem 4 món ngẫu nhiên 
     public function randomItems(Request $request)
     {
-        $MenuItem =MenuItem::raw(function ($collection) {
-        return $collection->aggregate([
-            ['$match' => ['status' => 'active']],
-            ['$sample' => ['size' => 6]],
-        ]);
-    });
+        $MenuItem = MenuItem::raw(function ($collection) {
+            return $collection->aggregate([
+                ['$match' => ['status' => 'active']],
+                ['$sample' => ['size' => 6]],
+            ]);
+        });
 
-    return response()->json($MenuItem);
+        return response()->json($MenuItem);
     }
 
     // Admin - xem tất cả món
@@ -41,22 +42,20 @@ class MenuController extends Controller
     // Lọc chung
     protected function applyFilters($query, Request $request, $isAdmin = false)
     {
-        // Lọc theo danh mục (nhiều danh mục)
+        // Lọc theo danh mục
+        if ($request->filled('category_id')) {
+            $categoryId = $request->input('category_id');
+            $query->where('category_id', $categoryId);
+        }
+
+        // Lọc theo nhiều danh mục
         if ($request->filled('category_ids')) {
             $categoryIds = $request->input('category_ids');
-
             if (is_string($categoryIds)) {
                 $categoryIds = explode(',', $categoryIds);
             }
-
             $categoryIds = array_map('trim', $categoryIds);
-
-            $query->where(function ($q) use ($categoryIds) {
-                foreach ($categoryIds as $id) {
-                    // Tìm kiếm trong chuỗi JSON chứa mảng category_ids
-                    $q->orWhere('category_ids', 'like', '%"' . $id . '"%');
-                }
-            });
+            $query->whereIn('category_id', $categoryIds);
         }
 
         // Lọc theo khoảng giá
@@ -66,6 +65,11 @@ class MenuController extends Controller
 
         if ($request->filled('price_max') && is_numeric($request->input('price_max'))) {
             $query->where('price', '<=', (float) $request->input('price_max'));
+        }
+
+        // Lọc theo tồn kho
+        if ($request->filled('in_stock') && $request->input('in_stock') == '1') {
+            $query->where('stock', '>', 0);
         }
 
         // Lọc theo trạng thái (chỉ admin)
@@ -80,6 +84,28 @@ class MenuController extends Controller
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%");
             });
+        }
+
+        // Sắp xếp
+        if ($request->filled('sort_by')) {
+            $sortBy = $request->input('sort_by');
+            $sortOrder = $request->input('sort_order', 'asc');
+            
+            switch ($sortBy) {
+                case 'price':
+                    $query->orderBy('price', $sortOrder);
+                    break;
+                case 'name':
+                    $query->orderBy('name', $sortOrder);
+                    break;
+                case 'created_at':
+                    $query->orderBy('created_at', $sortOrder);
+                    break;
+                default:
+                    $query->orderBy('created_at', 'desc');
+            }
+        } else {
+            $query->orderBy('created_at', 'desc');
         }
     }
 
@@ -106,8 +132,7 @@ class MenuController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'string|nullable',
             'price' => 'required|numeric|min:0',
-            'category_ids' => 'required|array',
-            'category_ids.*' => 'string',
+            'category_id' => 'required|string',
             'image' => 'string|nullable',
             'status' => 'nullable|string|in:active,inactive',
             'stock' => 'integer|min:0',
@@ -130,8 +155,7 @@ class MenuController extends Controller
             'name' => 'string|max:255',
             'description' => 'string|nullable',
             'price' => 'numeric|min:0',
-            'category_ids' => 'array|nullable',
-            'category_ids.*' => 'string',
+            'category_id' => 'string',
             'image' => 'string|nullable',
             'status' => 'nullable|string|in:active,inactive',
             'stock' => 'integer|min:0',

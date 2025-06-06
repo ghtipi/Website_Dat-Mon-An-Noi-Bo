@@ -2,10 +2,19 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:8000/api';
 
+export interface MenuItem {
+    id: string;
+    name: string;
+    price: number;
+    description?: string;
+    image?: string;
+}
+
 export interface OrderItem {
     menu_id: string;
     quantity: number;
     note?: string;
+    menu_item?: MenuItem;
 }
 
 export interface Order {
@@ -60,7 +69,26 @@ class OrderService {
                     'Accept': 'application/json'
                 }
             });
-            return response.data;
+            
+            // Fetch menu items for each order
+            const orders = response.data;
+            for (const order of orders) {
+                for (const item of order.items) {
+                    try {
+                        const menuResponse = await axios.get(`${API_URL}/menu-items/${item.menu_id}`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Accept': 'application/json'
+                            }
+                        });
+                        item.menu_item = menuResponse.data;
+                    } catch (error) {
+                        console.error(`Error fetching menu item ${item.menu_id}:`, error);
+                    }
+                }
+            }
+            
+            return orders;
         } catch (error: any) {
             if (error.response?.data?.error) {
                 throw new Error(error.response.data.error);
@@ -77,7 +105,24 @@ class OrderService {
                     'Accept': 'application/json'
                 }
             });
-            return response.data;
+            
+            // Fetch menu items for the order
+            const order = response.data;
+            for (const item of order.items) {
+                try {
+                    const menuResponse = await axios.get(`${API_URL}/menu/${item.menu_id}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Accept': 'application/json'
+                        }
+                    });
+                    item.menu_item = menuResponse.data;
+                } catch (error) {
+                    console.error(`Error fetching menu item ${item.menu_id}:`, error);
+                }
+            }
+            
+            return order;
         } catch (error: any) {
             if (error.response?.data?.error) {
                 throw new Error(error.response.data.error);

@@ -4,6 +4,7 @@ import Layout from '../components/Layout/Layout';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
+import { useCart } from '../contexts/CartContext';
 
 const CartPage = () => {
     const [cart, setCart] = useState<CartItem[]>([]);
@@ -12,9 +13,10 @@ const CartPage = () => {
     const [error, setError] = useState<string | null>(null);
     const [cartNote, setCartNote] = useState('');
     const navigate = useNavigate();
+    const { updateCartItemsCount } = useCart();
 
     const token = localStorage.getItem('token') || '';
-
+ 
     // Fetch cart items
     useEffect(() => {
         if (!token) {
@@ -71,6 +73,7 @@ const CartPage = () => {
                 cartItem._id === item._id ? updatedItem : cartItem
             ));
             
+            await updateCartItemsCount();
             toast.success(`Cập nhật số lượng "${item.menu_item?.name}" thành công!`);
         } catch (error: any) {
             setCart(prevCart => prevCart.map(cartItem => 
@@ -99,6 +102,7 @@ const CartPage = () => {
             setUpdatingItems(prev => ({ ...prev, [item._id]: true }));
             await CartItemService.deleteCartItem(item._id, token);
             setCart(prevCart => prevCart.filter(cartItem => cartItem._id !== item._id));
+            await updateCartItemsCount();
             toast.success(`Đã xóa "${item.menu_item?.name}" khỏi giỏ hàng!`);
         } catch (error: any) {
             toast.error(error.message || 'Không thể xóa sản phẩm.');
@@ -118,6 +122,7 @@ const CartPage = () => {
             await CartItemService.clearCart(token);
             setCart([]);
             setCartNote('');
+            await updateCartItemsCount();
             toast.success('Đã xóa toàn bộ giỏ hàng!');
         } catch (error: any) {
             toast.error(error.message || 'Không thể xóa giỏ hàng.');
@@ -242,119 +247,128 @@ const CartPage = () => {
                         )}
                     </button>
                 </div>
-                
-                {cart.length === 0 ? (
-                    <div className="text-center py-12 bg-white rounded-lg shadow-sm">
-                        <div className="mx-auto w-24 h-24 text-gray-400 mb-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                        </div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">Giỏ hàng của bạn đang trống</h3>
-                        <p className="text-gray-500 mb-6">Hãy khám phá thực đơn và thêm món ngon vào giỏ hàng nhé!</p>
-                        <button
-                            onClick={() => navigate('/menu')}
-                            className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors"
-                        >
-                            Xem thực đơn
-                        </button>
-                    </div>
-                ) : (
-                    <div className="flex flex-col lg:flex-row gap-6">
-                        {/* Cart Items - Left Side */}
-                        <div className="lg:w-2/3 bg-white rounded-lg shadow-sm overflow-hidden">
-                            <div className="hidden md:grid grid-cols-12 bg-gray-50 px-6 py-3 text-sm font-medium text-gray-500 uppercase tracking-wider">
-                                <div className="col-span-5">Sản phẩm</div>
-                                <div className="col-span-2 text-center">Đơn giá</div>
-                                <div className="col-span-2 text-center">Số lượng</div>
-                                <div className="col-span-2 text-center">Thành tiền</div>
-                                <div className="col-span-1"></div>
+
+                <div className="flex flex-col lg:flex-row gap-6">
+                    {/* Left Side - Cart Items or Empty State */}
+                    <div className="lg:w-2/3 bg-white rounded-lg shadow-sm overflow-hidden">
+                        {cart.length === 0 ? (
+                            <div className="text-center p-8">
+                                <div className="mx-auto w-32 h-32 text-gray-300 mb-6">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-2xl font-medium text-gray-800 mb-3">Giỏ hàng của bạn đang trống</h3>
+                                <p className="text-gray-500 mb-6">
+                                    Bạn chưa thêm món ăn nào vào giỏ hàng. Hãy khám phá thực đơn phong phú của chúng tôi!
+                                </p>
+                                <button
+                                    onClick={() => navigate('/menu')}
+                                    className="px-8 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium flex items-center justify-center gap-2 mx-auto"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                    Xem thực đơn ngay
+                                </button>
                             </div>
-                            
-                            <div className="divide-y divide-gray-200">
-                                {cart.map((item) => (
-                                    <div key={`${item._id}-${item.menu_id}`} className="grid grid-cols-12 px-4 py-6 md:px-6 hover:bg-gray-50 transition-colors">
-                                        {/* Product Info */}
-                                        <div className="col-span-12 md:col-span-5 mb-4 md:mb-0">
-                                            <div className="flex items-center">
-                                                <div className="flex-shrink-0 w-20 h-20 rounded-md overflow-hidden">
-                                                    <img
-                                                        src={item.menu_item?.image || 'https://via.placeholder.com/80'}
-                                                        alt={item.menu_item?.name}
-                                                        className="w-full h-full object-cover"
+                        ) : (
+                            <div>
+                                <div className="hidden md:grid grid-cols-12 bg-gray-50 px-6 py-3 text-sm font-medium text-gray-500 uppercase tracking-wider">
+                                    <div className="col-span-5">Sản phẩm</div>
+                                    <div className="col-span-2 text-center">Đơn giá</div>
+                                    <div className="col-span-2 text-center">Số lượng</div>
+                                    <div className="col-span-2 text-center">Thành tiền</div>
+                                    <div className="col-span-1"></div>
+                                </div>
+                                
+                                <div className="divide-y divide-gray-200">
+                                    {cart.map((item) => (
+                                        <div key={`${item._id}-${item.menu_id}`} className="grid grid-cols-12 px-4 py-6 md:px-6 hover:bg-gray-50 transition-colors">
+                                            {/* Product Info */}
+                                            <div className="col-span-12 md:col-span-5 mb-4 md:mb-0">
+                                                <div className="flex items-center">
+                                                    <div className="flex-shrink-0 w-20 h-20 rounded-md overflow-hidden">
+                                                        <img
+                                                            src={item.menu_item?.image || 'https://via.placeholder.com/80'}
+                                                            alt={item.menu_item?.name}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+                                                    <div className="ml-4">
+                                                        <h3 className="text-sm font-medium text-gray-900">{item.menu_item?.name || 'Unknown Item'}</h3>
+                                                        <div className="mt-1 text-sm text-gray-500 md:hidden">{(item.menu_item?.price || 0).toLocaleString()} ₫</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Price - Desktop */}
+                                            <div className="hidden md:flex col-span-2 items-center justify-center">
+                                                <div className="text-sm text-gray-900">{(item.menu_item?.price || 0).toLocaleString()} ₫</div>
+                                            </div>
+                                            
+                                            {/* Quantity */}
+                                            <div className="col-span-7 md:col-span-2 flex items-center">
+                                                <div className="flex items-center border border-gray-300 rounded-md">
+                                                    <button
+                                                        className="px-3 py-1 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 transition-colors"
+                                                        onClick={() => handleUpdateQuantity(item, item.quantity - 1)}
+                                                        disabled={item.quantity <= 1 || updatingItems[item._id]}
+                                                    >
+                                                        -
+                                                    </button>
+                                                    <input
+                                                        type="number"
+                                                        className="w-12 text-center border-t border-b border-gray-300 py-1 focus:outline-none focus:ring-1 focus:ring-primary"
+                                                        value={item.quantity}
+                                                        onChange={(e) => handleQuantityChange(item, e.target.value)}
+                                                        min="0"
+                                                        max="99"
+                                                        disabled={updatingItems[item._id]}
                                                     />
-                                                </div>
-                                                <div className="ml-4">
-                                                    <h3 className="text-sm font-medium text-gray-900">{item.menu_item?.name || 'Unknown Item'}</h3>
-                                                    <div className="mt-1 text-sm text-gray-500 md:hidden">{(item.menu_item?.price || 0).toLocaleString()} ₫</div>
+                                                    <button
+                                                        className="px-3 py-1 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 transition-colors"
+                                                        onClick={() => handleUpdateQuantity(item, item.quantity + 1)}
+                                                        disabled={item.quantity >= 99 || updatingItems[item._id]}
+                                                    >
+                                                        +
+                                                    </button>
                                                 </div>
                                             </div>
-                                        </div>
-                                        
-                                        {/* Price - Desktop */}
-                                        <div className="hidden md:flex col-span-2 items-center justify-center">
-                                            <div className="text-sm text-gray-900">{(item.menu_item?.price || 0).toLocaleString()} ₫</div>
-                                        </div>
-                                        
-                                        {/* Quantity */}
-                                        <div className="col-span-7 md:col-span-2 flex items-center">
-                                            <div className="flex items-center border border-gray-300 rounded-md">
+                                            
+                                            {/* Total */}
+                                            <div className="col-span-3 md:col-span-2 flex items-center justify-end md:justify-center">
+                                                <div className="text-sm font-medium text-gray-900">
+                                                    {((item.menu_item?.price || 0) * item.quantity).toLocaleString()} ₫
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Actions */}
+                                            <div className="col-span-2 md:col-span-1 flex items-center justify-end">
                                                 <button
-                                                    className="px-3 py-1 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 transition-colors"
-                                                    onClick={() => handleUpdateQuantity(item, item.quantity - 1)}
-                                                    disabled={item.quantity <= 1 || updatingItems[item._id]}
-                                                >
-                                                    -
-                                                </button>
-                                                <input
-                                                    type="number"
-                                                    className="w-12 text-center border-t border-b border-gray-300 py-1 focus:outline-none focus:ring-1 focus:ring-primary"
-                                                    value={item.quantity}
-                                                    onChange={(e) => handleQuantityChange(item, e.target.value)}
-                                                    min="0"
-                                                    max="99"
+                                                    onClick={() => handleDeleteItem(item)}
                                                     disabled={updatingItems[item._id]}
-                                                />
-                                                <button
-                                                    className="px-3 py-1 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 transition-colors"
-                                                    onClick={() => handleUpdateQuantity(item, item.quantity + 1)}
-                                                    disabled={item.quantity >= 99 || updatingItems[item._id]}
+                                                    className="text-red-500 hover:text-red-700 disabled:opacity-50 transition-colors"
+                                                    title="Xóa sản phẩm"
                                                 >
-                                                    +
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
                                                 </button>
                                             </div>
                                         </div>
-                                        
-                                        {/* Total */}
-                                        <div className="col-span-3 md:col-span-2 flex items-center justify-end md:justify-center">
-                                            <div className="text-sm font-medium text-gray-900">
-                                                {((item.menu_item?.price || 0) * item.quantity).toLocaleString()} ₫
-                                            </div>
-                                        </div>
-                                        
-                                        {/* Actions */}
-                                        <div className="col-span-2 md:col-span-1 flex items-center justify-end">
-                                            <button
-                                                onClick={() => handleDeleteItem(item)}
-                                                disabled={updatingItems[item._id]}
-                                                className="text-red-500 hover:text-red-700 disabled:opacity-50 transition-colors"
-                                                title="Xóa sản phẩm"
-                                            >
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
+                    </div>
+                    
+                    {/* Right Side - Order Summary (luôn hiển thị) */}
+                    <div className="lg:w-1/3 bg-white rounded-lg shadow-sm p-6 sticky top-4">
+                        <h3 className="text-lg font-medium text-gray-900 mb-4">Tóm tắt đơn hàng</h3>
                         
-                        {/* Order Summary - Right Side */}
-                        <div className="lg:w-1/3 bg-white rounded-lg shadow-sm p-6 sticky top-4">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Tóm tắt đơn hàng</h3>
-                            
-                            <div className="space-y-3 mb-6">
+                        <div className="space-y-3 mb-6">
+                            {cart.length > 0 && (
                                 <div>
                                     <label htmlFor="cartNote" className="block text-sm font-medium text-gray-700 mb-1">Ghi chú đơn hàng</label>
                                     <textarea
@@ -366,44 +380,46 @@ const CartPage = () => {
                                         onChange={(e) => setCartNote(e.target.value)}
                                     />
                                 </div>
-                                
-                                <div className="flex justify-between border-b border-gray-200 pb-2">
-                                    <span className="text-gray-600">Tạm tính:</span>
-                                    <span className="text-gray-900">{calculateTotal().toLocaleString()} ₫</span>
-                                </div>
-                                
-                                <div className="flex justify-between border-b border-gray-200 pb-2">
-                                    <span className="text-gray-600">Phí vận chuyển:</span>
-                                    <span className="text-gray-900">0 ₫</span>
-                                </div>
-                                
-                                <div className="flex justify-between text-lg font-medium">
-                                    <span>Tổng cộng:</span>
-                                    <span className="text-primary">{calculateTotal().toLocaleString()} ₫</span>
-                                </div>
+                            )}
+                            
+                            <div className="flex justify-between border-b border-gray-200 pb-2">
+                                <span className="text-gray-600">Tạm tính:</span>
+                                <span className="text-gray-900">{calculateTotal().toLocaleString()} ₫</span>
                             </div>
                             
-                            <div className="space-y-4">
-                                <button
-                                    onClick={handleCheckout}
-                                    disabled={loading || cart.length === 0}
-                                    className="w-full px-6 py-3 bg-teal-600 text-black rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                                >
-                                    {loading ? (
-                                        <>
-                                            <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
-                                            <span>Đang xử lý...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                                            </svg>
-                                            <span>Tiến hành thanh toán</span>
-                                        </>
-                                    )}
-                                </button>
-                                
+                            <div className="flex justify-between border-b border-gray-200 pb-2">
+                                <span className="text-gray-600">Phí vận chuyển:</span>
+                                <span className="text-gray-900">0 ₫</span>
+                            </div>
+                            
+                            <div className="flex justify-between text-lg font-medium">
+                                <span>Tổng cộng:</span>
+                                <span className="text-red-600">{calculateTotal().toLocaleString()} ₫</span>
+                            </div>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            <button
+                                onClick={handleCheckout}
+                                disabled={loading || cart.length === 0}
+                                className="w-full px-6 py-3 bg-teal-500 text-black rounded-lg hover:bg-teal-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                            >
+                                {loading ? (
+                                    <>
+                                        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+                                        <span>Đang xử lý...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                        </svg>
+                                        <span>Tiến hành thanh toán</span>
+                                    </>
+                                )}
+                            </button>
+                            
+                            {cart.length > 0 && (
                                 <button
                                     onClick={handleClearCart}
                                     disabled={loading}
@@ -414,10 +430,10 @@ const CartPage = () => {
                                     </svg>
                                     Xóa toàn bộ giỏ hàng
                                 </button>
-                            </div>
+                            )}
                         </div>
                     </div>
-                )}
+                </div>
             </div>
         </Layout>
     );
