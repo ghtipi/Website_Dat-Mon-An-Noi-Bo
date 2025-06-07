@@ -23,6 +23,7 @@ import HomePage from './Pages/HomePage';
 import CartPage from './Pages/CartPage';
 import CheckoutPage from './Pages/CheckoutPage';
 import OrderHistoryPage from './Pages/OrderHistoryPage';
+import MenuPage from './Pages/MenuPage';
 
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/" element={<HomePage />} />
+          <Route path="/menus" element={<MenuPage />} />
           
 
           {/* Protected Admin Routes */}

@@ -61,7 +61,7 @@ export const getMenuPage = async (
         status: item.status || 'active',
         stock: item.stock ?? 0,
       })),
-    }; 
+    };
   } catch (error) {
     console.error('Lỗi khi lấy menu-page:', error);
     throw error;

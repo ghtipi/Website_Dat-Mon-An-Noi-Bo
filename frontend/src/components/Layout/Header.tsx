@@ -43,12 +43,17 @@ const Header = () => {
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const form = e.currentTarget;
-    const searchInput = form.querySelector('input[name="search"]') as HTMLInputElement;
-    if (searchInput.value.trim()) {
-      navigate(`/menu?search=${encodeURIComponent(searchInput.value.trim())}`);
+    if (searchQuery.trim()) {
+      navigate(`/menu?search=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
+
+  // Update search query when URL changes
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const searchValue = searchParams.get('search') || '';
+    setSearchQuery(searchValue);
+  }, [location.search]);
 
   const handleLogout = () => {
     logout();
@@ -141,6 +146,7 @@ const Header = () => {
             <div className="relative">
               <input
                 type="text"
+                name="search"
                 placeholder={sreachPlaceholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -156,7 +162,7 @@ const Header = () => {
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path
+                  <path 
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
