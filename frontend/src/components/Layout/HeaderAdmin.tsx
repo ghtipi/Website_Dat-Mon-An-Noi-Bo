@@ -1,8 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import useTypingEffect from '../../hooks/useTypingEffect';
 import TimeInfo from '../../components/TimeInfo';
 import { useAuth } from '../../contexts/AuthContext';
+import { ToastContainer } from 'react-toastify';
+import { eventBus } from '../../utils/eventBus';
+import 'react-toastify/dist/ReactToastify.css';
 
 const HeaderAdmin = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -96,6 +99,22 @@ const HeaderAdmin = () => {
     }, 150);
   };
 
+  useEffect(() => {
+    // Lắng nghe sự kiện cập nhật thông tin user
+    const handleUserUpdate = () => {
+      const updatedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (updatedUser) {
+        window.location.reload(); // Reload để cập nhật thông tin
+      }
+    };
+
+    eventBus.on('userUpdated', handleUserUpdate);
+
+    return () => {
+      eventBus.off('userUpdated', handleUserUpdate);
+    };
+  }, []);
+
   return (
     <header className="fixed top-0 left-0 right-0 bg-gray-100 backdrop-blur-sm border-b border-white/40 shadow-md z-50 pb-1">
       <div className="container mx-auto px-4 py-4">
@@ -151,10 +170,18 @@ const HeaderAdmin = () => {
                   onMouseLeave={onAvatarMouseLeave}
                   className="group flex items-center space-x-2 text-gray-700 hover:text-teal-600 focus:outline-none"
                 >
-                  <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center">
-                    <span className="text-teal-600 font-semibold">
-                      {getInitials(user?.name)}
-                    </span>
+                  <div className="w-10 h-10 rounded-full overflow-hidden bg-teal-100 flex items-center justify-center">
+                    {user?.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt={user.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-teal-600 font-semibold">
+                        {getInitials(user?.name)}
+                      </span>
+                    )}
                   </div>
                   <div className="hidden md:block text-left leading-tight">
                     <div className="font-medium text-gray-800">
@@ -182,19 +209,19 @@ const HeaderAdmin = () => {
                       </p>
                     </div>
                     {(user?.role === 'admin' || user?.role === 'manager') && (
-                        <Link
-                          to={
-                            isOnAdminPage
-                              ? '/' 
-                              : user.role === 'admin'
-                              ? '/admin'
-                              : '/manager'
-                          }
-                          className="block px-4 py-2 text-gray-700 hover:bg-teal-100"
-                        >
-                          {isOnAdminPage ? 'Về trang chính' : user.role === 'admin' ? 'Admin' : 'Manager'}
-                        </Link>
-                      )}
+                      <Link
+                        to={
+                          isOnAdminPage
+                            ? '/' 
+                            : user.role === 'admin'
+                            ? '/admin'
+                            : '/manager'
+                        }
+                        className="block px-4 py-2 text-gray-700 hover:bg-teal-100"
+                      >
+                        {isOnAdminPage ? 'Về trang chính' : user.role === 'admin' ? 'Admin' : 'Manager'}
+                      </Link>
+                    )}
 
                     <Link
                       to="/profile"
@@ -228,6 +255,7 @@ const HeaderAdmin = () => {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </header>
   );
 };

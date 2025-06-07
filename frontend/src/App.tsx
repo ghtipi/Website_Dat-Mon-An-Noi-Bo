@@ -25,6 +25,7 @@ import CheckoutPage from './Pages/CheckoutPage';
 import OrderHistoryPage from './Pages/OrderHistoryPage';
 import MenuPage from './Pages/MenuPage';
 import ProfilePage from './Pages/ProfilePage';
+import ContactPage from './Pages/ContactPage';
 
 
 function App() {
@@ -132,6 +133,7 @@ function App() {
             }
           />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/contact" element={<ContactPage />} />
 
           {/* Fallback Route */}
           <Route path="*" element={<Navigate to="/" replace />} />

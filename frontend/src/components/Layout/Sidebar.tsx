@@ -114,7 +114,7 @@ const Sidebar: React.FC = () => {
           {/* Menu phụ */}
           <ul className="space-y-2 mb-16 ">
             <li>
-              <Link to="/setting" className={menuItemClass('/setting')} title="Cài Đặt">
+              <Link to="/profile" className={menuItemClass('/profile')} title="Cài Đặt">
                 <IoSettingsOutline className="min-w-[24px] h-6" size={24} />
                 <span className={`ml-3 text-sm font-semibold transition-opacity duration-300 ${
                   isExpanded ? 'opacity-100' : 'opacity-0'
