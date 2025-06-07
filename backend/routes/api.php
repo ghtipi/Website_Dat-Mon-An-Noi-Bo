@@ -45,6 +45,7 @@ Route::prefix('auth')->group(function () {
         Route::get('/me', [AuthController::class, 'me']);
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::post('/refresh', [AuthController::class, 'refresh']);
+        Route::put('/change-password', [UserController::class, 'changePassword']);
     });
 });
 
@@ -52,6 +53,10 @@ Route::prefix('auth')->group(function () {
 // Protected APIs (auth:api)
 // ======================
 Route::middleware('auth:api')->group(function () {
+    // ---------- Profile ----------
+    Route::get('/profile', [UserController::class, 'me']);
+    Route::put('/profile', [UserController::class, 'updateProfile']);
+    Route::put('/change-password', [UserController::class, 'changePassword']);
 
     // ---------- Category (Admin/Manager) ----------
     Route::middleware('role:admin,manager')->group(function () {

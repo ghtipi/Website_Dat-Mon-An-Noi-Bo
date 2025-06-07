@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import CartItemService from '../../services/CartItemService';
 import { useCart } from '../../contexts/CartContext';
 import { ToastContainer } from 'react-toastify';
+import { eventBus } from '../../utils/eventBus';
 import 'react-toastify/dist/ReactToastify.css';
 
 const Header = () => {
@@ -126,6 +127,22 @@ const Header = () => {
     }, 150);
   };
 
+  useEffect(() => {
+    // Lắng nghe sự kiện cập nhật thông tin user
+    const handleUserUpdate = () => {
+      const updatedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (updatedUser) {
+        window.location.reload(); // Reload để cập nhật thông tin
+      }
+    };
+
+    eventBus.on('userUpdated', handleUserUpdate);
+
+    return () => {
+      eventBus.off('userUpdated', handleUserUpdate);
+    };
+  }, []);
+
   return (
     <header className="fixed top-0 left-0 right-0 bg-transparent backdrop-blur-sm border-b border-white/40 shadow-md z-50 pb-1">
       <div className="container mx-auto px-4 py-4">
@@ -211,10 +228,18 @@ const Header = () => {
                     onMouseLeave={onAvatarMouseLeave}
                     className="group flex items-center space-x-2 text-gray-700 hover:text-teal-600 focus:outline-none"
                   >
-                    <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center">
-                      <span className="text-teal-600 font-semibold">
-                        {getInitials(user?.name)}
-                      </span>
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-teal-100 flex items-center justify-center">
+                      {user?.avatar ? (
+                        <img
+                          src={user.avatar}
+                          alt={user.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-teal-600 font-semibold">
+                          {getInitials(user?.name)}
+                        </span>
+                      )}
                     </div>
                     <div className="hidden md:block text-left leading-tight">
                       <div className="font-medium text-gray-800">

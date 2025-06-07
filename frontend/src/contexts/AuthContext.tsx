@@ -1,13 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import apiCall from '../Api/axios';
 
-interface User {
-  id: string;
+export interface User {
+  id: number;
+  name: string;
   email: string;
-  name?: string;
-  role?: 'admin' | 'user' | 'manager';
+  role: string;
+  avatar?: string;
 }
-
 
 interface AuthContextType {
   user: User | null;

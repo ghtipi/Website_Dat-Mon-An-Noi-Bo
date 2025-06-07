@@ -24,6 +24,7 @@ import CartPage from './Pages/CartPage';
 import CheckoutPage from './Pages/CheckoutPage';
 import OrderHistoryPage from './Pages/OrderHistoryPage';
 import MenuPage from './Pages/MenuPage';
+import ProfilePage from './Pages/ProfilePage';
 
 
 function App() {
@@ -130,6 +131,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/profile" element={<ProfilePage />} />
 
           {/* Fallback Route */}
           <Route path="*" element={<Navigate to="/" replace />} />

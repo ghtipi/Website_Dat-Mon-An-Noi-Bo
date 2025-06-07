@@ -139,7 +139,7 @@ const OrderHistoryPage = () => {
                 <div className="flex justify-between items-center mb-8">
                     <h2 className="text-3xl font-bold text-gray-900">Lịch sử đơn hàng</h2>
                     <button
-                        onClick={() => navigate('/')}
+                        onClick={() => navigate('/menus')}
                         className="flex items-center gap-2 text-teal-500 hover:text-teal-600 font-medium transition-colors duration-200"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -161,7 +161,7 @@ const OrderHistoryPage = () => {
                             Bạn chưa có đơn hàng nào. Hãy khám phá thực đơn và đặt món ngay!
                         </p>
                         <button
-                            onClick={() => navigate('/')}
+                            onClick={() => navigate('/menus')}
                             className="px-8 py-3 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors duration-200 font-medium flex items-center justify-center gap-2 mx-auto"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
