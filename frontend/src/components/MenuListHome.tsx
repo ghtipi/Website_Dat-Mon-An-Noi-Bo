@@ -4,6 +4,7 @@ import { MenuData, getMenusHomepage } from '../services/MenuServie';
 import CartItemService from '../services/CartItemService';
 import Tooltip from './Tooltip';
 import { toast } from 'react-toastify';
+import { useCart } from '../contexts/CartContext';
 import 'react-toastify/dist/ReactToastify.css';
 
 function stripHtmlAndTruncate(html: string, maxLength = 20) {
@@ -19,6 +20,7 @@ const MenuListHome = () => {
     const [error, setError] = useState<string | null>(null);
     const [hoveredMenu, setHoveredMenu] = useState<MenuData | null>(null);
     const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+    const { updateCartItemsCount } = useCart();
 
     const navigate = useNavigate();
 
@@ -59,7 +61,8 @@ const MenuListHome = () => {
                 note: '',
             };
 
-             await CartItemService.addToCart(cartItem, token);
+            await CartItemService.addToCart(cartItem, token);
+            await updateCartItemsCount();
             toast.success(`Đã thêm "${menu.name}" vào giỏ hàng!`);
         } catch (error: any) {
             console.error('Lỗi khi thêm vào giỏ:', error);
@@ -104,7 +107,7 @@ const MenuListHome = () => {
     }
 
     return (
-        <div className="relative container mx-auto px-4 py-8">
+        <div className="relative container mx-auto px-4 py-8"> 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {menus.map((menu) => (
                     <div

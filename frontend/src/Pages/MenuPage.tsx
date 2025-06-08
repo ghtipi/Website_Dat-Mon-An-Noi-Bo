@@ -5,6 +5,7 @@ import { getMenuPage, MenuFilterParams, PaginatedMenuResponse, MenuData } from '
 import { categoryService, Category } from '../services/categoryService';
 import CartItemService from '../services/CartItemService';
 import { toast } from 'react-toastify';
+import { useCart } from '../contexts/CartContext';
 import 'react-toastify/dist/ReactToastify.css';
 import Tooltip from '../components/Tooltip';
 
@@ -20,6 +21,7 @@ const MenuPage: React.FC = () => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const searchQuery = searchParams.get('search') || '';
+  const { updateCartItemsCount } = useCart();
 
   const [menuData, setMenuData] = useState<PaginatedMenuResponse>({
     current_page: 1,
@@ -123,6 +125,7 @@ const MenuPage: React.FC = () => {
       };
 
       await CartItemService.addToCart(cartItem, token);
+      await updateCartItemsCount(); // Update cart count after adding item
       toast.success(`Đã thêm "${menu.name}" vào giỏ hàng!`);
     } catch (error: any) {
       console.error('Lỗi khi thêm vào giỏ:', error);

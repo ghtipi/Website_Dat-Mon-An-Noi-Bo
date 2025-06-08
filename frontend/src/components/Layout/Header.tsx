@@ -128,11 +128,10 @@ const Header = () => {
   };
 
   useEffect(() => {
-    // Lắng nghe sự kiện cập nhật thông tin user
     const handleUserUpdate = () => {
       const updatedUser = JSON.parse(localStorage.getItem('user') || '{}');
       if (updatedUser) {
-        window.location.reload(); // Reload để cập nhật thông tin
+        window.location.reload(); 
       }
     };
 

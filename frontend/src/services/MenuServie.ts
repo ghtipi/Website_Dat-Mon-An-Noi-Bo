@@ -23,7 +23,7 @@ export interface MenuFilterParams {
   price_range?: string;
 }
 
-// ✅ Interface phân trang:
+//  Interface phân trang:
 export interface PaginatedMenuResponse {
   current_page: number;
   last_page: number;
@@ -31,8 +31,36 @@ export interface PaginatedMenuResponse {
   total: number;
   data: MenuData[];
 }
+// lấy danh sách món ăn phổ biến
 
-// ✅ Gọi menu-page có phân trang
+export const getpopularMenu = async (token: string): Promise<MenuData[]> => {
+  try {
+    const response = await axios.get(`${API_BASE}/menu/popular`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+      },
+    });
+
+    const data = response.data;
+    if (!Array.isArray(data)) {
+      throw new Error('Dữ liệu trả về không phải là danh sách món ăn');
+    }
+
+    return data.map((item: any) => ({
+      ...item,
+      image: item.image || 'https://via.placeholder.com/300',
+      description: item.description || '',
+      status: item.status || 'active',
+      stock: item.stock ?? 0,
+    }));
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách menu:', error);
+    throw error;
+  }
+}; 
+
+// Gọi menu-page có phân trang
 export const getMenuPage = async (
   page = 1,
   perPage = 12,

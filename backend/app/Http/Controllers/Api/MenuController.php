@@ -17,8 +17,20 @@ class MenuController extends Controller
         $items = $query->get();
         return response()->json($items);
     }
+    //Người dùng - lấy danh sách món ăn top
+    public function PopularItems(Request $request)
+    {
+        $MenuItem = MenuItem::raw(function ($collection) {
+            return $collection->aggregate([
+                ['$match' => ['status' => 'active']],
+                ['$sample' => ['size' => 4]],
+            ]);
+        });
 
-    // Người dùng - xem 4 món ngẫu nhiên 
+        return response()->json($MenuItem);
+    }
+
+    // Người dùng - xem 6 món ngẫu nhiên 
     public function randomItems(Request $request)
     {
         $MenuItem = MenuItem::raw(function ($collection) {

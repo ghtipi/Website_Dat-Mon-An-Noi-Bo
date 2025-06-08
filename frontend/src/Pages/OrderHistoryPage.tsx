@@ -38,15 +38,50 @@ const OrderHistoryPage = () => {
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'pending':
-                return 'bg-yellow-100 text-yellow-800 ring-yellow-500';
+                return 'bg-amber-50 text-amber-800 border-amber-200';
             case 'processing':
-                return 'bg-blue-100 text-blue-800 ring-blue-500';
+                return 'bg-blue-50 text-blue-800 border-blue-200';
             case 'completed':
-                return 'bg-green-100 text-green-800 ring-green-500';
+                return 'bg-emerald-50 text-emerald-800 border-emerald-200';
             case 'cancelled':
-                return 'bg-red-100 text-red-800 ring-red-500';
+                return 'bg-rose-50 text-rose-800 border-rose-200';
             default:
-                return 'bg-gray-100 text-gray-800 ring-gray-500';
+                return 'bg-gray-50 text-gray-800 border-gray-200';
+        }
+    };
+
+    const getStatusIcon = (status: string) => {
+        switch (status) {
+            case 'pending':
+                return (
+                    <svg className="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                );
+            case 'processing':
+                return (
+                    <svg className="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                );
+            case 'completed':
+                return (
+                    <svg className="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                );
+            case 'cancelled':
+                return (
+                    <svg className="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                );
+            default:
+                return (
+                    <svg className="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                );
         }
     };
 
@@ -86,9 +121,9 @@ const OrderHistoryPage = () => {
         return (
             <Layout>
                 <div className="container mx-auto px-4 py-12 max-w-7xl">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-8">Lịch sử đơn hàng</h2>
-                    <div className="flex justify-center items-center h-64">
-                        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-teal-500"></div>
+                    <div className="flex flex-col items-center justify-center min-h-[400px]">
+                        <div className="w-16 h-16 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+                        <p className="mt-4 text-lg font-medium text-gray-700">Đang tải lịch sử đơn hàng...</p>
                     </div>
                 </div>
             </Layout>
@@ -99,22 +134,25 @@ const OrderHistoryPage = () => {
         return (
             <Layout>
                 <div className="container mx-auto px-4 py-12 max-w-7xl">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-8">Lịch sử đơn hàng</h2>
-                    <div className="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg shadow-sm">
-                        <div className="flex items-center">
-                            <svg className="h-6 w-6 text-red-500 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <p className="text-base text-red-700 font-medium">{error}</p>
+                    <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-sm overflow-hidden">
+                        <div className="p-8 text-center">
+                            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                                <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <h3 className="mt-3 text-lg font-medium text-gray-900">{error}</h3>
+                            {!token && (
+                                <div className="mt-6">
+                                    <button
+                                        onClick={() => navigate('/login')}
+                                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+                                    >
+                                        Đăng nhập ngay
+                                    </button>
+                                </div>
+                            )}
                         </div>
-                        {!token && (
-                            <button
-                                onClick={() => navigate('/login')}
-                                className="mt-6 bg-teal-500 text-white px-6 py-2 rounded-lg hover:bg-teal-600 transition-colors duration-200 font-medium"
-                            >
-                                Đăng nhập ngay
-                            </button>
-                        )}
                     </div>
                 </div>
             </Layout>
@@ -136,13 +174,17 @@ const OrderHistoryPage = () => {
                     pauseOnHover
                     style={{ zIndex: 10000, top: '80px' }}
                 />
-                <div className="flex justify-between items-center mb-8">
-                    <h2 className="text-3xl font-bold text-gray-900">Lịch sử đơn hàng</h2>
+                
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900">Lịch sử đơn hàng</h1>
+                        <p className="mt-1 text-gray-600">Xem lại các đơn hàng bạn đã đặt</p>
+                    </div>
                     <button
                         onClick={() => navigate('/menus')}
-                        className="flex items-center gap-2 text-teal-500 hover:text-teal-600 font-medium transition-colors duration-200"
+                        className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
                         Xem thực đơn
@@ -150,80 +192,112 @@ const OrderHistoryPage = () => {
                 </div>
 
                 {orders.length === 0 ? (
-                    <div className="text-center p-10 bg-white rounded-lg shadow-md">
-                        <div className="mx-auto w-40 h-40 text-gray-300 mb-6">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                        <div className="p-12 text-center">
+                            <svg className="mx-auto h-24 w-24 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
+                            <h3 className="mt-4 text-lg font-medium text-gray-900">Chưa có đơn hàng nào</h3>
+                            <p className="mt-2 text-gray-600">
+                                Bạn chưa có đơn hàng nào. Hãy khám phá thực đơn và đặt món ngay!
+                            </p>
+                            <div className="mt-6">
+                                <button
+                                    onClick={() => navigate('/menus')}
+                                    className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                    Xem thực đơn ngay
+                                </button>
+                            </div>
                         </div>
-                        <h3 className="text-2xl font-semibold text-gray-900 mb-4">Chưa có đơn hàng nào</h3>
-                        <p className="text-gray-600 mb-6 text-base">
-                            Bạn chưa có đơn hàng nào. Hãy khám phá thực đơn và đặt món ngay!
-                        </p>
-                        <button
-                            onClick={() => navigate('/menus')}
-                            className="px-8 py-3 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors duration-200 font-medium flex items-center justify-center gap-2 mx-auto"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                            Xem thực đơn ngay
-                        </button>
                     </div>
                 ) : (
                     <div className="space-y-6">
                         {orders.map((order) => (
                             <div
                                 key={order.id}
-                                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200"
+                                className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-shadow duration-200"
                             >
                                 <div className="p-6">
-                                    <div className="flex justify-between items-center mb-4">
+                                    <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
                                         <div>
-                                            <h3 className="text-xl font-semibold text-gray-900">
+                                            <h3 className="text-xl font-bold text-gray-900">
                                                 Đơn hàng #{order.id}
                                             </h3>
-                                            <p className="text-sm text-gray-500">
+                                            <div className="mt-1 flex items-center text-sm text-gray-500">
+                                                <svg className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
                                                 {new Date(order.created_at).toLocaleString('vi-VN', {
-                                                    dateStyle: 'medium',
-                                                    timeStyle: 'short',
+                                                    day: '2-digit',
+                                                    month: '2-digit',
+                                                    year: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit',
                                                 })}
-                                            </p>
+                                            </div>
                                         </div>
-                                        <div className="flex gap-3">
+                                        
+                                        <div className="flex flex-wrap gap-2">
                                             <span
-                                                className={`px-3 py-1 rounded-full text-sm font-medium ring-1 ring-inset ${getStatusColor(
+                                                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
                                                     order.status
                                                 )}`}
                                             >
+                                                {getStatusIcon(order.status)}
                                                 {getStatusText(order.status)}
                                             </span>
                                             <span
-                                                className={`px-3 py-1 rounded-full text-sm font-medium ring-1 ring-inset ${getStatusColor(
+                                                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
                                                     order.delivery_status
                                                 )}`}
                                             >
+                                                <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                                </svg>
                                                 {getDeliveryStatusText(order.delivery_status)}
                                             </span>
                                         </div>
                                     </div>
 
-                                    <div className="border-t border-gray-200 pt-4">
+                                    <div className="border-t border-gray-200 pt-6">
+                                        <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">Chi tiết đơn hàng</h4>
+                                        
                                         <div className="space-y-4">
                                             {order.items.map((item, index) => (
                                                 <div
                                                     key={index}
-                                                    className="flex justify-between items-center text-sm"
+                                                    className="flex justify-between items-start"
                                                 >
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="font-medium text-gray-900">
-                                                            {item.quantity}x
-                                                        </span>
-                                                        <span className="text-gray-700">
-                                                            {item.menu_item?.name || `Món #${item.menu_id}`}
-                                                        </span>
+                                                    <div className="flex items-start gap-4">
+                                                        <div className="flex-shrink-0 h-16 w-16 rounded-md overflow-hidden bg-gray-100">
+                                                            {item.menu_item?.image ? (
+                                                                <img 
+                                                                    src={item.menu_item.image} 
+                                                                    alt={item.menu_item.name}
+                                                                    className="h-full w-full object-cover object-center"
+                                                                />
+                                                            ) : (
+                                                                <div className="h-full w-full flex items-center justify-center text-gray-400">
+                                                                    <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                                    </svg>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div>
+                                                            <h5 className="text-sm font-medium text-gray-900">
+                                                                {item.menu_item?.name || `Món #${item.menu_id}`}
+                                                            </h5>
+                                                            <p className="text-sm text-gray-500 mt-1">
+                                                                {item.menu_item?.price?.toLocaleString()} ₫ × {item.quantity}
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                    <span className="text-gray-900 font-medium">
+                                                    <span className="text-sm font-medium text-gray-900">
                                                         {(item.quantity * (item.menu_item?.price || 0)).toLocaleString()} ₫
                                                     </span>
                                                 </div>
@@ -231,18 +305,21 @@ const OrderHistoryPage = () => {
                                         </div>
 
                                         {order.note && (
-                                            <div className="mt-4 pt-4 border-t border-gray-200">
-                                                <p className="text-sm text-gray-600">
-                                                    <span className="font-medium">Ghi chú:</span> {order.note}
+                                            <div className="mt-6 pt-6 border-t border-gray-200">
+                                                <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Ghi chú</h4>
+                                                <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md">
+                                                    {order.note}
                                                 </p>
                                             </div>
                                         )}
 
-                                        <div className="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center">
-                                            <span className="text-lg font-semibold text-gray-900">Tổng cộng:</span>
-                                            <span className="text-lg font-semibold text-teal-600">
-                                                {order.total_price.toLocaleString()} ₫
-                                            </span>
+                                        <div className="mt-6 pt-6 border-t border-gray-200">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-base font-medium text-gray-600">Tổng tiền:</span>
+                                                <span className="text-xl font-bold text-teal-600">
+                                                    {order.total_price.toLocaleString()} ₫
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

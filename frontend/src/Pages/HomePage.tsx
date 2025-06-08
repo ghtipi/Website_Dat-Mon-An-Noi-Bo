@@ -1,16 +1,97 @@
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout/Layout';
 import CategoryList from '../components/CategoryList';
 import MenuListHome from '../components/MenuListHome';
 import PosterList from '../components/Posterlist';
+import { getpopularMenu, MenuData } from '../services/MenuServie';
+import CartItemService from '../services/CartItemService';
+import Tooltip from '../components/Tooltip';
+import { toast } from 'react-toastify';
+import { useCart } from '../contexts/CartContext';
+import 'react-toastify/dist/ReactToastify.css';
 
 const HomePage = () => {
+  const [popularMenus, setPopularMenus] = useState<MenuData[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [hoveredMenu, setHoveredMenu] = useState<MenuData | null>(null);
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+  const { updateCartItemsCount } = useCart();
+  const navigate = useNavigate();
+
+  const token = localStorage.getItem('token') || '';
+
+  useEffect(() => {
+    const fetchPopularMenus = async () => {
+      try {
+        setLoading(true);
+        if (!token) throw new Error('Không tìm thấy token. Vui lòng đăng nhập.');
+        const menus = await getpopularMenu(token);
+        setPopularMenus(menus);
+      } catch (err) {
+        setError('Không thể tải danh sách món ăn phổ biến');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPopularMenus();
+  }, [token]);
+
+  const handleAddToCart = async (e: React.MouseEvent, menu: MenuData) => {
+    e.stopPropagation();
+    try {
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+      if (!menu.id) {
+        throw new Error('menu_id không hợp lệ.');
+      }
+
+      const cartItem = {
+        menu_id: menu.id,
+        quantity: 1,
+        note: '',
+      };
+
+      await CartItemService.addToCart(cartItem, token);
+      await updateCartItemsCount();
+      toast.success(`Đã thêm "${menu.name}" vào giỏ hàng!`);
+    } catch (error: any) {
+      console.error('Lỗi khi thêm vào giỏ:', error);
+      if (error.response?.data) {
+        const errorMessage =
+          error.response.data.errors?.menu_id?.[0] ||
+          error.response.data.errors?.quantity?.[0] ||
+          error.response.data.message ||
+          'Dữ liệu không hợp lệ.';
+        toast.error(`Không thể thêm vào giỏ hàng: ${errorMessage}`);
+      } else {
+        toast.error(`Lỗi: ${error.message || 'Không thể kết nối tới server.'}`);
+      }
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    setTooltipPos({ x: e.clientX, y: e.clientY });
+  };
+
+  const stripHtmlAndTruncate = (html: string, maxLength = 20) => {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    const text = tmp.textContent || tmp.innerText || '';
+    return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
+  };
+
   return (
     <Layout>
       <div className="flex flex-col lg:flex-row gap-6 px-4 sm:px-6 lg:px-8 py-6 min-h-screen">
-        {/* Main Content - Takes 75% on desktop, full width on mobile */}
+        {/* Main Content */}
         <div className="w-full lg:w-3/4 space-y-8 z-10">
-          {/* Hero Section - PosterList with improved styling */}
+          {/* Hero Section */}
           <section className="rounded-xl overflow-hidden shadow-lg relative">
             <PosterList />
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
@@ -19,7 +100,7 @@ const HomePage = () => {
             </div>
           </section>
 
-          {/* Category Section with enhanced design */}
+          {/* Category Section */}
           <section>
             <div className="bg-white rounded-xl shadow-md p-6">
               <div className="flex justify-between items-center mb-6">
@@ -40,7 +121,7 @@ const HomePage = () => {
             </div>
           </section>
 
-          {/* Menu Section with more prominent design */}
+          {/* Menu Section */}
           <section>
             <div className="bg-white rounded-xl shadow-md overflow-hidden">
               <div className="bg-gradient-to-r from-teal-600 to-blue-600 p-4 text-white">
@@ -50,7 +131,7 @@ const HomePage = () => {
                 <div className="flex justify-between items-center mb-6">
                   <p className="text-gray-600">Những món ăn được yêu thích nhất</p>
                   <Link 
-                    to="/menu" 
+                    to="/menus" 
                     className="text-teal-600 hover:text-teal-700 text-sm font-medium flex items-center transition-colors"
                   >
                     Xem tất cả
@@ -64,9 +145,8 @@ const HomePage = () => {
             </div>
           </section>
 
-          {/* Feature Cards with improved styling */}
+          {/* Feature Cards */}
           <section className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {/* Card Menu */}
             <div className="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border border-gray-100">
               <div className="p-6">
                 <div className="bg-gradient-to-br from-teal-100 to-teal-50 w-12 h-12 rounded-xl flex items-center justify-center mb-4">
@@ -87,8 +167,6 @@ const HomePage = () => {
                 </Link>
               </div>
             </div>
-
-            {/* Card Đặt Món */}
             <div className="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border border-gray-100">
               <div className="p-6">
                 <div className="bg-gradient-to-br from-orange-100 to-orange-50 w-12 h-12 rounded-xl flex items-center justify-center mb-4">
@@ -99,7 +177,7 @@ const HomePage = () => {
                 <h3 className="text-xl font-semibold mb-3 text-gray-800">Đặt Món</h3>
                 <p className="text-gray-600 text-sm mb-4">Đặt món ăn yêu thích nhanh chóng và dễ dàng.</p>
                 <Link
-                  to="/order"
+                  to="/menus"
                   className="inline-flex items-center text-teal-600 hover:text-teal-700 text-sm font-medium group"
                 >
                   Đặt món ngay
@@ -109,8 +187,6 @@ const HomePage = () => {
                 </Link>
               </div>
             </div>
-
-            {/* Card Theo Dõi Đơn Hàng */}
             <div className="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border border-gray-100">
               <div className="p-6">
                 <div className="bg-gradient-to-br from-blue-100 to-blue-50 w-12 h-12 rounded-xl flex items-center justify-center mb-4">
@@ -133,48 +209,44 @@ const HomePage = () => {
             </div>
           </section>
 
-          {/* Contact Section with gradient background */}
-<section className="bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl shadow-lg overflow-hidden">
-  <div className="p-8 text-white">
-    <h2 className="text-3xl font-bold mb-6">Liên Hệ Với Chúng Tôi</h2>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      {/* Địa chỉ */}
-      <div className="bg-white/10 p-6 rounded-lg backdrop-blur-sm">
-        <h3 className="text-xl font-semibold mb-4 flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          Địa Chỉ
-        </h3>
-        <p className="text-white/90">123 Đường ABC, Quận XYZ, TP. HCM</p>
-      </div>
-
-      {/* Thông tin liên hệ */}
-      <div className="bg-white/10 p-6 rounded-lg backdrop-blur-sm">
-        <h3 className="text-xl font-semibold mb-4 flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-          </svg>
-          Liên Hệ
-        </h3>
-        <p className="text-white/90 mb-2">Email: contact@example.com</p>
-        <p className="text-white/90 mb-4">Điện thoại: (012) 345-6789</p>
-
-        <h4 className="text-lg font-medium mt-6 mb-3">Giờ mở cửa</h4>
-        <div className="space-y-2">
-          <p className="text-white/90 text-sm">Thứ 2 - Thứ 6: 8:00 - 22:00</p>
-          <p className="text-white/90 text-sm">Thứ 7 - CN: 9:00 - 23:00</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+          {/* Contact Section */}
+          <section className="bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl shadow-lg overflow-hidden">
+            <div className="p-8 text-white">
+              <h2 className="text-3xl font-bold mb-6">Liên Hệ Với Chúng Tôi</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-white/10 p-6 rounded-lg backdrop-blur-sm">
+                  <h3 className="text-xl font-semibold mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Địa Chỉ
+                  </h3>
+                  <p className="text-white/90">123 Đường ABC, Quận XYZ, TP. HCM</p>
+                </div>
+                <div className="bg-white/10 p-6 rounded-lg backdrop-blur-sm">
+                  <h3 className="text-xl font-semibold mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    Liên Hệ
+                  </h3>
+                  <p className="text-white/90 mb-2">Email: contact@example.com</p>
+                  <p className="text-white/90 mb-4">Điện thoại: (012) 345-6789</p>
+                  <h4 className="text-lg font-medium mt-6 mb-3">Giờ mở cửa</h4>
+                  <div className="space-y-2">
+                    <p className="text-white/90 text-sm">Thứ 2 - Thứ 6: 8:00 - 22:00</p>
+                    <p className="text-white/90 text-sm">Thứ 7 - CN: 9:00 - 23:00</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
 
-        {/* Sidebar - Takes 25% on desktop, hidden on mobile unless toggled */}
+        {/* Sidebar */}
         <div className="hidden lg:block w-1/4 space-y-6">
-          {/* Promotion Card with better styling */}
+          {/* Promotion Card */}
           <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-orange-200">
             <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 text-center font-bold text-lg">
               Ưu Đãi Đặc Biệt
@@ -185,8 +257,6 @@ const HomePage = () => {
               </div>
               <h3 className="text-xl font-bold text-gray-800 mb-2">Giảm 20% cho đơn đầu tiên</h3>
               <p className="text-sm text-gray-600 mb-4">Nhập mã <span className="font-mono bg-gray-100 px-2 py-1 rounded">WELCOME20</span> khi thanh toán</p>
-              <div className="flex items-center justify-center mb-4">
-              </div>
               <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg text-sm font-bold transition-colors shadow-md hover:shadow-lg">
                 Áp dụng ngay
               </button>
@@ -194,41 +264,77 @@ const HomePage = () => {
             </div>
           </div>
 
-          {/* Popular Items with enhanced design */}
+          {/* Popular Items */}
           <div className="bg-white rounded-xl shadow-md p-5">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-bold text-gray-800">Món Phổ Biến</h3>
               <span className="bg-teal-100 text-teal-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Hot</span>
             </div>
-            <div className="space-y-4">
-              {[1, 2, 3, 4].map((item) => (
-                <div key={item} className="flex items-center space-x-4 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                  <div className="relative w-14 h-14 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                    <img 
-                      src={`https://source.unsplash.com/random/200x200/?food-${item}`} 
-                      alt="Popular food" 
-                      className="w-full h-full object-cover"
-                    />
-                    {item === 1 && (
-                      <div className="absolute top-0 left-0 bg-red-500 text-white text-xs px-1 rounded-br-lg">Bán chạy</div>
-                    )}
+            {loading ? (
+              <p className="text-center text-gray-600">Đang tải...</p>
+            ) : error ? (
+              <p className="text-center text-red-600">{error}</p>
+            ) : (
+              <div className="space-y-4">
+                {popularMenus.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center space-x-4 p-3 hover:bg-gray-50 rounded-lg transition-colors relative"
+                    onClick={() => navigate(`/menu/${item.slug}`)}
+                    onMouseEnter={() => setHoveredMenu(item)}
+                    onMouseLeave={() => setHoveredMenu(null)}
+                    onMouseMove={handleMouseMove}
+                  >
+                    <div className="relative w-14 h-14 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                      />
+                      {index === 0 && (
+                        <div className="absolute top-0 left-0 bg-red-500 text-white text-xs px-1 rounded-br-lg">Bán chạy</div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-semibold text-gray-800 truncate">{item.name}</h4>
+                      <p className="text-xs text-gray-500 mb-1">{item.description ? stripHtmlAndTruncate(item.description, 20) : 'Không có mô tả'}</p>
+                      <p className="text-sm font-bold text-orange-600">{item.price.toLocaleString('vi-VN')} VNĐ</p>
+                    </div>
+                    <button
+                      className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                        item.stock
+                          ? 'bg-teal-500 hover:bg-teal-600 text-white'
+                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      }`}
+                      onClick={(e) => item.stock && handleAddToCart(e, item)}
+                      disabled={!item.stock}
+                    >
+                      Thêm
+                    </button>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-semibold text-gray-800 truncate">Tên món ăn {item}</h4>
-                    <p className="text-xs text-gray-500 mb-1">Phân loại {item}</p>
-                    <p className="text-sm font-bold text-orange-600">120.000 VNĐ</p>
-                  </div>
-                  <button className="text-teal-600 hover:text-teal-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
+            {hoveredMenu && (
+              <Tooltip
+                x={tooltipPos.x}
+                y={tooltipPos.y}
+                content={
+                  <>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">{hoveredMenu.name}</h4>
+                    <p className="text-sm text-gray-700">
+                      {hoveredMenu.description
+                        ? stripHtmlAndTruncate(hoveredMenu.description, 200)
+                        : 'Không có mô tả'}
+                    </p>
+                  </>
+                }
+                visible={!!hoveredMenu}
+              />
+            )}
           </div>
 
-          {/* Newsletter with improved design */}
+          {/* Newsletter */}
           <div className="bg-white rounded-xl shadow-md overflow-hidden">
             <div className="bg-gradient-to-r from-teal-500 to-blue-500 p-4 text-white text-center">
               <h3 className="text-lg font-bold">Nhận Ưu Đãi</h3>
@@ -236,12 +342,12 @@ const HomePage = () => {
             <div className="p-5">
               <p className="text-sm text-gray-600 mb-4 text-center">Đăng ký để nhận thông báo ưu đãi mới nhất</p>
               <div className="space-y-3">
-                <input 
-                  type="email" 
-                  placeholder="Email của bạn" 
+                <input
+                  type="email"
+                  placeholder="Email của bạn"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 />
-                <button 
+                <button
                   className="w-full bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white py-3 rounded-lg text-sm font-bold transition-colors shadow-md hover:shadow-lg"
                 >
                   Đăng ký ngay

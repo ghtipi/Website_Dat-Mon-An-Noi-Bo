@@ -16,10 +16,11 @@ use App\Http\Controllers\Api\{
     CommentController,
     ImageController,
     UserController,
-    CartItemController
+    CartItemController,
+    DashboardController
 };
 
-// ======================
+// ======================    
 // Public APIs (No Auth)
 // ======================
 Route::get('/categories/random', [CategoryController::class, 'randomCategories']);
@@ -28,6 +29,7 @@ Route::get('/categories/{id}', [CategoryController::class, 'show']);
 
 Route::get('/menu', [MenuController::class, 'index']);
 Route::get('/menu/random', [MenuController::class, 'randomItems']);
+Route::get('/menu/popular', [MenuController::class, 'PopularItems']);
 Route::get('/menu-page', [MenuController::class, 'menuPage']);
 Route::get('/menufilters', [MenuController::class, 'applyFilters']);
 Route::get('/ratings', [RatingController::class, 'index']);
@@ -83,6 +85,8 @@ Route::middleware('auth:api')->group(function () {
             Route::delete('/users/{id}', [UserController::class, 'destroy']);
             Route::put('/users/{id}/status', [UserController::class, 'updateStatus']);
             Route::put('/users/{id}/role', [UserController::class, 'updateRole']);
+            Route::get('/dashboard/admin', [DashboardController::class, 'getAdminStats']);
+            Route::get('/dashboard/manager', [DashboardController::class, 'getManagerStats']);
         });
 
         // Menu Items
@@ -112,6 +116,7 @@ Route::middleware('auth:api')->group(function () {
 
     // ---------- Reports (Admin Only) ----------
     Route::middleware('role:admin')->group(function () {
+        
         Route::get('/reports', [ReportController::class, 'index']);
         Route::post('/reports', [ReportController::class, 'store']);
         Route::get('/reports/{id}', [ReportController::class, 'show']);
@@ -159,3 +164,4 @@ Route::middleware('auth:api')->group(function () {
         Route::delete('/posters/{id}', [PosterController::class, 'destroy']);
     });
 });
+

@@ -12,12 +12,44 @@ const CartPage = () => {
     const [updatingItems, setUpdatingItems] = useState<Record<string, boolean>>({});
     const [error, setError] = useState<string | null>(null);
     const [cartNote, setCartNote] = useState('');
-    const navigate = useNavigate();
+    const navigate = useNavigate(); 
     const { updateCartItemsCount } = useCart();
 
     const token = localStorage.getItem('token') || '';
+
+    // Function to fetch cart data
+    const fetchCartData = async () => {
+        try {
+            setLoading(true);
+            const cartItems = await CartItemService.getCartItems(token);
+            setCart(cartItems);
+            if (cartItems.length > 0 && cartItems[0].note) {
+                setCartNote(cartItems[0].note);
+            }
+            setError(null);
+        } catch (err: any) {
+            setError('Không thể tải giỏ hàng: ' + (err.message || 'Lỗi không xác định'));
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Function to update single cart item
+    const updateCartItem = async (itemId: string) => {
+        try {
+            const cartItems = await CartItemService.getCartItems(token);
+            const updatedItem = cartItems.find(item => item._id === itemId);
+            if (updatedItem) {
+                setCart(prevCart => prevCart.map(item => 
+                    item._id === itemId ? updatedItem : item
+                ));
+            }
+        } catch (err: any) {
+            console.error('Error updating cart item:', err);
+        }
+    };
  
-    // Fetch cart items
+    // Fetch cart items on initial load
     useEffect(() => {
         if (!token) {
             setError('Vui lòng đăng nhập để xem giỏ hàng.');
@@ -25,23 +57,7 @@ const CartPage = () => {
             return;
         }
 
-        const fetchCart = async () => {
-            try {
-                setLoading(true);
-                const cartItems = await CartItemService.getCartItems(token);
-                setCart(cartItems);
-                if (cartItems.length > 0 && cartItems[0].note) {
-                    setCartNote(cartItems[0].note);
-                }
-                setError(null);
-            } catch (err: any) {
-                setError('Không thể tải giỏ hàng: ' + (err.message || 'Lỗi không xác định'));
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchCart();
+        fetchCartData();
     }, []);
 
     // Update quantity
@@ -62,23 +78,12 @@ const CartPage = () => {
         }
 
         try {
-            setCart(prevCart => prevCart.map(cartItem => 
-                cartItem._id === item._id ? { ...cartItem, quantity: newQuantity } : cartItem
-            ));
-
             setUpdatingItems(prev => ({ ...prev, [item._id]: true }));
-            const updatedItem = await CartItemService.updateCartItem(item._id, { quantity: newQuantity }, token);
-            
-            setCart(prevCart => prevCart.map(cartItem => 
-                cartItem._id === item._id ? updatedItem : cartItem
-            ));
-            
+            await CartItemService.updateCartItem(item._id, { quantity: newQuantity }, token);
+            await updateCartItem(item._id); // Only update the changed item
             await updateCartItemsCount();
             toast.success(`Cập nhật số lượng "${item.menu_item?.name}" thành công!`);
         } catch (error: any) {
-            setCart(prevCart => prevCart.map(cartItem => 
-                cartItem._id === item._id ? { ...cartItem, quantity: item.quantity } : cartItem
-            ));
             toast.error(error.message || 'Không thể cập nhật số lượng.');
         } finally {
             setUpdatingItems(prev => ({ ...prev, [item._id]: false }));
@@ -139,8 +144,12 @@ const CartPage = () => {
                 item._id ? CartItemService.updateCartItem(item._id, { note: cartNote }, token) : Promise.resolve()
             );
             await Promise.all(updatePromises);
-            const updatedCart = await CartItemService.getCartItems(token);
-            setCart(updatedCart);
+            // Update each item individually to maintain smooth UI
+            for (const item of cart) {
+                if (item._id) {
+                    await updateCartItem(item._id);
+                }
+            }
             toast.success('Cập nhật ghi chú thành công!');
         } catch (error: any) {
             toast.error(error.message || 'Không thể cập nhật ghi chú.');

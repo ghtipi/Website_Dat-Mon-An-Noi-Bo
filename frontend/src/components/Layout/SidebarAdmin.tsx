@@ -5,9 +5,7 @@ import {
   MdDashboard,
   MdPeople,
   MdInventory2,
-  MdShoppingCart,
   MdSettings,
-  MdBarChart,
   MdLogout,
   MdCategory,
   MdCollections // Thêm biểu tượng cho quản lý poster
@@ -24,8 +22,6 @@ const AdminSidebar: React.FC = () => {
     { to: '/admin/categories', label: 'Categories', icon: MdCategory },
     { to: '/admin/products', label: 'Products', icon: MdInventory2 },
     { to: '/admin/posters', label: 'Posters', icon: MdCollections }, // Thêm mục quản lý poster
-    { to: '/admin/orders', label: 'Orders', icon: MdShoppingCart },
-    { to: '/admin/reports', label: 'Reports', icon: MdBarChart },
     { to: '/admin/settings', label: 'Settings', icon: MdSettings },
   ];
 
